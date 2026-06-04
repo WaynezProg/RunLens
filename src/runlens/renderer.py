@@ -1,0 +1,42 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from jinja2 import Environment, PackageLoader, select_autoescape
+
+from runlens.models import ArtifactSpec, RunState
+from runlens.store import ARTIFACTS_DIR, load_spec, load_state
+
+
+def template_env() -> Environment:
+    return Environment(
+        loader=PackageLoader("runlens", "templates"),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+
+
+def render_report(
+    base: Path,
+    output_path: Path,
+    spec: ArtifactSpec | None = None,
+    state: RunState | None = None,
+    banner: str | None = None,
+) -> Path:
+    resolved_spec = spec or load_spec(base)
+    resolved_state = state or load_state(base)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    html = template_env().get_template("report.html.j2").render(
+        spec=resolved_spec,
+        state=resolved_state,
+        banner=banner,
+    )
+    output_path.write_text(html, encoding="utf-8")
+    return output_path
+
+
+def render_working_report(base: Path, banner: str | None = None) -> Path:
+    return render_report(
+        base=base,
+        output_path=base / ARTIFACTS_DIR / "working" / "report.html",
+        banner=banner,
+    )

@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ spec.task.title }}</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #d7dce2;
+      --muted: #56616f;
+      --page: #ffffff;
+      --panel: #f7f9fb;
+      --text: #111827;
+    }
+
+    body {
+      background: var(--page);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      margin: 0;
+      padding: 32px;
+    }
+
+    main {
+      margin: 0 auto;
+      max-width: 960px;
+    }
+
+    h1, h2 {
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 32px;
+    }
+
+    h2 {
+      border-bottom: 1px solid var(--border);
+      font-size: 20px;
+      margin-top: 32px;
+      padding-bottom: 8px;
+    }
+
+    p {
+      margin: 8px 0 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--panel);
+      font-weight: 600;
+    }
+
+    .banner {
+      background: #fff7d6;
+      border: 1px solid #e7c85f;
+      margin-bottom: 20px;
+      padding: 12px 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    {% if banner %}
+    <div class="banner">{{ banner }}</div>
+    {% endif %}
+
+    <h1>{{ spec.task.title }}</h1>
+    <p>{{ spec.task.description }}</p>
+
+    <h2>Run state</h2>
+    <table>
+      <tbody>
+        <tr>
+          <th scope="row">State</th>
+          <td>{{ state.state }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Updated at</th>
+          <td>{{ state.updated_at }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Last report</th>
+          <td>{{ state.last_report or "None" }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Note</th>
+          <td>{{ state.note }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Acceptance criteria</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Required</th>
+          <th>Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for criterion in spec.acceptance_criteria %}
+        <tr>
+          <td>{{ criterion.id }}</td>
+          <td>{{ criterion.description }}</td>
+          <td>{{ criterion.status }}</td>
+          <td>{{ criterion.required }}</td>
+          <td>{{ criterion.evidence or "None" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Artifact metadata</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Path</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for artifact in spec.artifacts %}
+        <tr>
+          <td>{{ artifact.title }}</td>
+          <td>{{ artifact.type }}</td>
+          <td>{{ artifact.status }}</td>
+          <td>{{ artifact.path }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" class="muted">No artifact metadata.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Chart metadata</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Path</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for chart in spec.charts %}
+        <tr>
+          <td>{{ chart.title }}</td>
+          <td>{{ chart.type }}</td>
+          <td>{{ chart.status }}</td>
+          <td>{{ chart.path }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" class="muted">No chart metadata.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>
