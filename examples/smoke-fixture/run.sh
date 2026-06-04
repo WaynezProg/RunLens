@@ -18,8 +18,10 @@ runlens init
 #    required criterion to be `passed` with evidence — so it must be satisfied.
 runlens criteria pass --id define-criteria --evidence "Smoke fixture: placeholder satisfied by the canonical workflow."
 
-# 3. Add and pass a task-specific criterion (demonstrates `criteria add`/`pass`).
-runlens criteria add --id smoke-report --description "Working report renders for the smoke task."
+# 3. Add and pass a task-specific REQUIRED criterion. `--required` makes it part
+#    of the finalize gate, so the smoke run proves a task criterion (not just the
+#    built-in placeholder) must pass before final.html is written.
+runlens criteria add --id smoke-report --description "Working report renders for the smoke task." --required
 runlens criteria pass --id smoke-report --evidence "runlens render wrote .agent-artifacts/working/report.html"
 
 # 4. Record progress and refresh the working report.
