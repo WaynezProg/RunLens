@@ -1,0 +1,16 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Valid bar chart fixture.",
+  "data": {
+    "values": [
+      {"category": "A", "amount": 28},
+      {"category": "B", "amount": 55},
+      {"category": "C", "amount": 43}
+    ]
+  },
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "category", "type": "nominal"},
+    "y": {"field": "amount", "type": "quantitative"}
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Invalid: unknown mark. Valid JSON with inline data so the renderer can fall back to a table.",
+  "data": {
+    "values": [
+      {"category": "A", "amount": 28},
+      {"category": "B", "amount": 55}
+    ]
+  },
+  "mark": "not-a-real-mark",
+  "encoding": {}
+}

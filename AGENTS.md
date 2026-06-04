@@ -34,6 +34,26 @@ or chart inference system unless the user explicitly changes scope.
   - `--blocked-reason <text>` sets `blocked` and must not create final output;
   - empty `--blocked-reason ""` is CLI misuse and must not mutate state.
 
+## Acceptance Criteria Workflow
+
+The canonical end-to-end sequence lives in `examples/smoke-fixture/run.sh` and is
+enforced by `tests/test_smoke_adapter.py`:
+
+```bash
+runlens init
+runlens criteria add --id <id> --description "<what>" [--required]
+runlens criteria pass --id <id> --evidence "<proof>"
+runlens update --state working --note "<milestone>"
+runlens render
+runlens finalize
+```
+
+`init` seeds one required placeholder criterion, `define-criteria`, in `pending`.
+There is no `criteria remove`, and `finalize` requires every required criterion to
+be `passed` with evidence — so satisfy it via `runlens criteria pass --id
+define-criteria --evidence "..."` (or `criteria fail` / `criteria reset` as the task
+dictates). Use `runlens criteria list` to inspect status.
+
 ## Development
 
 Use `uv`; do not install global Python tooling.
@@ -52,7 +72,9 @@ When changing behavior, write or update tests first and watch them fail before i
 
 - Keep report HTML static and readable.
 - Jinja output must remain autoescaped.
-- Chart support is metadata passthrough / table fallback only; do not infer chart types in the MVP.
+- Charts are Vega-Lite `.vl.json` specs referenced by path. The renderer pre-renders
+  them to inline SVG via vl-convert, with a data-table/link fallback when a spec is
+  missing or invalid. Do not infer chart types or synthesize charts from raw data.
 - Keep artifacts metadata-only: path, type, title, status. Do not store large HTML bodies or datasets in YAML.
 
 ## CodeGraph

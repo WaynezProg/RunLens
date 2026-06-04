@@ -1,0 +1,17 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Valid line chart fixture.",
+  "data": {
+    "values": [
+      {"t": 1, "v": 10},
+      {"t": 2, "v": 14},
+      {"t": 3, "v": 9},
+      {"t": 4, "v": 17}
+    ]
+  },
+  "mark": "line",
+  "encoding": {
+    "x": {"field": "t", "type": "quantitative"},
+    "y": {"field": "v", "type": "quantitative"}
+  }
+}

@@ -4,6 +4,7 @@ from pathlib import Path
 
 from jinja2 import Environment, PackageLoader
 
+from runlens.charts import render_chart
 from runlens.models import ArtifactSpec, RunState
 from runlens.store import ARTIFACTS_DIR, load_spec, load_state
 
@@ -24,11 +25,13 @@ def render_report(
 ) -> Path:
     resolved_spec = spec or load_spec(base)
     resolved_state = state or load_state(base)
+    rendered_charts = [render_chart(base, chart) for chart in resolved_spec.charts]
     output_path.parent.mkdir(parents=True, exist_ok=True)
     html = template_env().get_template("report.html.j2").render(
         spec=resolved_spec,
         state=resolved_state,
         banner=banner,
+        charts=rendered_charts,
     )
     output_path.write_text(html, encoding="utf-8")
     return output_path

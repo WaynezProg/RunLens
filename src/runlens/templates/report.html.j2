@@ -159,30 +159,37 @@
     </table>
 
     <h2>Chart metadata</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Type</th>
-          <th>Status</th>
-          <th>Path</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for chart in spec.charts %}
-        <tr>
-          <td>{{ chart.title }}</td>
-          <td>{{ chart.type }}</td>
-          <td>{{ chart.status }}</td>
-          <td>{{ chart.path }}</td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="4" class="muted">No chart metadata.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    {% for chart in charts %}
+    <section class="chart">
+      <h3>{{ chart.title }}</h3>
+      {% if chart.svg %}
+      {# SVG is vl-convert output rendered from the spec, not agent-authored HTML. #}
+      <div class="chart-figure">{{ chart.svg | safe }}</div>
+      {% else %}
+      <p class="muted">Chart unavailable: {{ chart.fallback_reason }}</p>
+      {% if chart.table_rows %}
+      <table>
+        <thead>
+          <tr>
+            {% for header in chart.table_headers %}<th>{{ header }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in chart.table_rows %}
+          <tr>
+            {% for cell in row %}<td>{{ cell }}</td>{% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      <p class="muted">Spec: <a href="{{ chart.path }}">{{ chart.path }}</a></p>
+      {% endif %}
+      <p class="muted">{{ chart.type }} &middot; {{ chart.status }} &middot; {{ chart.path }}</p>
+    </section>
+    {% else %}
+    <p class="muted">No chart metadata.</p>
+    {% endfor %}
   </main>
 </body>
 </html>

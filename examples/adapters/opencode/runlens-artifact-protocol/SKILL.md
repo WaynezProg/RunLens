@@ -39,6 +39,18 @@ Initialize runtime files:
 uv run runlens init
 ```
 
+Define and pass acceptance criteria (the finalize gate reads these):
+
+```bash
+uv run runlens criteria add --id parser --description "CSV parser handles quoted fields" --required
+uv run runlens criteria pass --id parser --evidence "tests/test_parser.py: 12 passed"
+```
+
+`init` seeds a required placeholder criterion, `define-criteria`, in `pending`. There
+is no `criteria remove`, and `finalize` needs every required criterion `passed` with
+evidence — so pass it too (`uv run runlens criteria pass --id define-criteria
+--evidence "..."`). Use `criteria fail` / `criteria reset` / `criteria list` as needed.
+
 Record meaningful progress:
 
 ```bash
