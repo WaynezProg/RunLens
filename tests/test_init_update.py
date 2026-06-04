@@ -17,6 +17,12 @@ from runlens.store import (
 )
 
 
+def invoke_ok(runner: CliRunner, args: list[str]):
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0, result.output
+    return result
+
+
 def test_init_creates_protocol_tree_and_placeholder_criterion(isolated_cwd: Path):
     init_artifacts(isolated_cwd)
 
@@ -135,7 +141,7 @@ def test_cli_init_creates_placeholder_contract(isolated_cwd: Path):
 
 def test_cli_update_writes_run_state_only(isolated_cwd: Path):
     runner = CliRunner()
-    runner.invoke(app, ["init"])
+    invoke_ok(runner, ["init"])
     before_spec = (isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml").read_text()
 
     result = runner.invoke(
@@ -145,3 +151,16 @@ def test_cli_update_writes_run_state_only(isolated_cwd: Path):
     assert result.exit_code == 0
     assert load_state(isolated_cwd).note == "implemented parser"
     assert (isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml").read_text() == before_spec
+
+
+def test_cli_update_before_init_exits_with_user_facing_error(isolated_cwd: Path):
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app, ["update", "--state", "working", "--note", "implemented parser"]
+    )
+
+    assert result.exit_code != 0
+    assert "Run runlens init first" in result.output
+    assert "Traceback" not in result.output
+    assert "FileNotFoundError" not in result.output

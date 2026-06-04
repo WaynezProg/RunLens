@@ -8,6 +8,12 @@ from runlens.renderer import render_working_report
 from runlens.store import ARTIFACTS_DIR, init_artifacts
 
 
+def invoke_ok(runner: CliRunner, args: list[str]):
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0, result.output
+    return result
+
+
 def test_render_can_be_rerun_and_only_writes_working_report(isolated_cwd: Path):
     init_artifacts(isolated_cwd)
 
@@ -60,10 +66,21 @@ def test_render_escapes_spec_fields(isolated_cwd: Path):
 
 def test_cli_render_writes_working_report_only(isolated_cwd: Path):
     runner = CliRunner()
-    runner.invoke(app, ["init"])
+    invoke_ok(runner, ["init"])
 
     result = runner.invoke(app, ["render"])
 
     assert result.exit_code == 0
     assert (isolated_cwd / ARTIFACTS_DIR / "working" / "report.html").exists()
     assert not (isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html").exists()
+
+
+def test_cli_render_before_init_exits_with_user_facing_error(isolated_cwd: Path):
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["render"])
+
+    assert result.exit_code != 0
+    assert "Run runlens init first" in result.output
+    assert "Traceback" not in result.output
+    assert "FileNotFoundError" not in result.output
