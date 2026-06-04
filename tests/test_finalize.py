@@ -29,6 +29,7 @@ def test_finalize_fails_nonzero_without_passed_required_criteria(
     result = runner.invoke(app, ["finalize"])
 
     assert result.exit_code == 1
+    assert "artifact_spec.yaml" in result.output or "Failed" in result.output
     assert load_state(isolated_cwd).state == "failed"
     assert not (
         isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"
@@ -107,6 +108,66 @@ def test_finalize_blocked_removes_existing_final_html(isolated_cwd: Path):
     ).exists()
 
 
+def test_finalize_blocked_missing_spec_removes_existing_final_and_sets_blocked(
+    isolated_cwd: Path,
+):
+    runner = CliRunner()
+    invoke_ok(runner, ["init"])
+    write_criteria(
+        isolated_cwd,
+        [
+            {
+                "id": "tests",
+                "description": "Tests pass",
+                "status": "passed",
+                "evidence": "uv run pytest -q: passed",
+                "required": True,
+            }
+        ],
+    )
+    invoke_ok(runner, ["finalize"])
+    (isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml").unlink()
+
+    result = runner.invoke(app, ["finalize", "--blocked-reason", "waiting"])
+
+    assert result.exit_code == 1
+    assert load_state(isolated_cwd).state == "blocked"
+    assert not (
+        isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"
+    ).exists()
+    report = isolated_cwd / ARTIFACTS_DIR / "working" / "report.html"
+    assert report.exists()
+    blocked_output = result.output + report.read_text()
+    assert "waiting" in blocked_output
+    assert "artifact_spec.yaml" in blocked_output or "Blocked" in blocked_output
+
+
+def test_finalize_empty_blocked_reason_does_not_finalize(isolated_cwd: Path):
+    runner = CliRunner()
+    invoke_ok(runner, ["init"])
+    write_criteria(
+        isolated_cwd,
+        [
+            {
+                "id": "tests",
+                "description": "Tests pass",
+                "status": "passed",
+                "evidence": "uv run pytest -q: passed",
+                "required": True,
+            }
+        ],
+    )
+
+    result = runner.invoke(app, ["finalize", "--blocked-reason", ""])
+
+    assert result.exit_code == 1
+    assert load_state(isolated_cwd).state == "blocked"
+    assert not (
+        isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"
+    ).exists()
+    assert "Blocked reason is empty" in result.output
+
+
 def test_finalize_requires_evidence_for_passed_required_criteria(
     isolated_cwd: Path,
 ):
@@ -128,6 +189,7 @@ def test_finalize_requires_evidence_for_passed_required_criteria(
     result = runner.invoke(app, ["finalize"])
 
     assert result.exit_code == 1
+    assert "artifact_spec.yaml" in result.output or "Failed" in result.output
     assert load_state(isolated_cwd).state == "failed"
     assert not (
         isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"
@@ -229,6 +291,7 @@ def test_finalize_invalid_spec_removes_existing_final_and_sets_failed(
     result = runner.invoke(app, ["finalize"])
 
     assert result.exit_code == 1
+    assert "artifact_spec.yaml" in result.output or "Failed" in result.output
     assert load_state(isolated_cwd).state == "failed"
     assert not (
         isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"

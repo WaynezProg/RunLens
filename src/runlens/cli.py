@@ -8,7 +8,7 @@ import typer
 import yaml
 from pydantic import ValidationError
 
-from runlens.models import RunStatus
+from runlens.models import ArtifactSpec, RunStatus
 from runlens.renderer import (
     checkpoint_report_path,
     final_report_path,
@@ -74,6 +74,18 @@ def finalize_command(
     def remove_final_report(base: Path) -> None:
         final_report_path(base).unlink(missing_ok=True)
 
+    def load_report_spec(base: Path) -> ArtifactSpec:
+        try:
+            return load_spec(base)
+        except (
+            FileNotFoundError,
+            TypeError,
+            ValueError,
+            ValidationError,
+            yaml.YAMLError,
+        ):
+            return default_spec()
+
     def fail_finalize(base: Path, note: str, banner: str, spec_is_valid: bool) -> None:
         state = build_updated_state(
             base,
@@ -89,25 +101,42 @@ def finalize_command(
         )
         remove_final_report(base)
         write_state(base, state)
+        typer.echo(banner, err=True)
+        raise typer.Exit(1)
+
+    def block_finalize(base: Path, note: str, banner: str) -> None:
+        state = build_updated_state(
+            base,
+            state=RunStatus.blocked,
+            note=note,
+            last_report=WORKING_REPORT,
+        )
+        render_working_report(
+            base,
+            banner=banner,
+            state=state,
+            spec=load_report_spec(base),
+        )
+        remove_final_report(base)
+        write_state(base, state)
+        typer.echo(banner, err=True)
         raise typer.Exit(1)
 
     def finalize_run() -> Path:
         base = Path.cwd()
-        if blocked_reason:
-            state = build_updated_state(
+        if blocked_reason is not None:
+            reason = blocked_reason.strip()
+            if not reason:
+                block_finalize(
+                    base,
+                    note="Blocked reason is empty.",
+                    banner="Blocked reason is empty.",
+                )
+            block_finalize(
                 base,
-                state=RunStatus.blocked,
-                note=blocked_reason,
-                last_report=WORKING_REPORT,
+                note=reason,
+                banner=f"Blocked: {reason}",
             )
-            render_working_report(
-                base,
-                banner=f"Blocked: {blocked_reason}",
-                state=state,
-            )
-            remove_final_report(base)
-            write_state(base, state)
-            raise typer.Exit(1)
 
         try:
             spec = load_spec(base)
