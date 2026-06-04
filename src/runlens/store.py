@@ -85,7 +85,7 @@ def load_spec(base: Path) -> ArtifactSpec:
     return ArtifactSpec.model_validate(payload)
 
 
-def write_state(base: Path, state: RunState) -> None:
+def _write_state_json(base: Path, state: RunState) -> None:
     ensure_protocol_dirs(base)
     root = artifacts_root(base)
     payload = state.model_dump(mode="json")
@@ -93,6 +93,11 @@ def write_state(base: Path, state: RunState) -> None:
         json.dumps(payload, indent=2, ensure_ascii=True) + "\n",
         encoding="utf-8",
     )
+
+
+def write_state(base: Path, state: RunState) -> None:
+    _write_state_json(base, state)
+    root = artifacts_root(base)
     (root / STATE_MARKDOWN).write_text(render_state_markdown(state), encoding="utf-8")
 
 
@@ -128,8 +133,25 @@ def render_state_markdown(state: RunState) -> str:
 
 def init_artifacts(base: Path) -> None:
     ensure_protocol_dirs(base)
-    write_spec(base, default_spec())
-    write_state(base, default_state())
+    root = artifacts_root(base)
+    spec_path = root / SPEC_FILE
+    state_path = root / STATE_FILE
+    markdown_path = root / STATE_MARKDOWN
+
+    if not spec_path.exists():
+        write_spec(base, default_spec())
+
+    if not state_path.exists():
+        state = default_state()
+        if markdown_path.exists():
+            _write_state_json(base, state)
+        else:
+            write_state(base, state)
+    elif not markdown_path.exists():
+        markdown_path.write_text(
+            render_state_markdown(load_state(base)),
+            encoding="utf-8",
+        )
 
 
 def update_state(

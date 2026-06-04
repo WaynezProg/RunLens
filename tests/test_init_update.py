@@ -11,6 +11,7 @@ from runlens.store import (
     load_spec,
     load_state,
     update_state,
+    write_spec,
 )
 
 
@@ -74,6 +75,42 @@ def test_update_changes_updated_at_when_run_immediately_after_init(
     updated = update_state(isolated_cwd, state="working", note="implemented parser")
 
     assert updated.updated_at != previous.updated_at
+
+
+def test_init_preserves_existing_contract_and_state(isolated_cwd: Path):
+    init_artifacts(isolated_cwd)
+    spec = load_spec(isolated_cwd)
+    spec.acceptance_criteria[0].status = "passed"
+    spec.acceptance_criteria[0].evidence = ".agent-artifacts/working/report.html"
+    write_spec(isolated_cwd, spec)
+    update_state(isolated_cwd, state="working", note="kept existing evidence")
+    markdown_path = isolated_cwd / ARTIFACTS_DIR / "RUN_STATE.md"
+    before_markdown = markdown_path.read_text()
+
+    init_artifacts(isolated_cwd)
+
+    preserved_spec = load_spec(isolated_cwd)
+    preserved_state = load_state(isolated_cwd)
+    assert preserved_spec.acceptance_criteria[0].status == "passed"
+    assert (
+        preserved_spec.acceptance_criteria[0].evidence
+        == ".agent-artifacts/working/report.html"
+    )
+    assert preserved_state.note == "kept existing evidence"
+    assert markdown_path.read_text() == before_markdown
+
+
+def test_init_regenerates_missing_state_markdown_from_existing_state(isolated_cwd: Path):
+    init_artifacts(isolated_cwd)
+    update_state(isolated_cwd, state="working", note="state survives missing markdown")
+    markdown_path = isolated_cwd / ARTIFACTS_DIR / "RUN_STATE.md"
+    markdown_path.unlink()
+
+    init_artifacts(isolated_cwd)
+
+    assert load_state(isolated_cwd).note == "state survives missing markdown"
+    assert markdown_path.is_file()
+    assert "state survives missing markdown" in markdown_path.read_text()
 
 
 def test_run_state_json_does_not_copy_acceptance_criteria(isolated_cwd: Path):
