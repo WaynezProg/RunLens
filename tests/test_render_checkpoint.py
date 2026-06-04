@@ -1,7 +1,9 @@
 from pathlib import Path
 
 import yaml
+from typer.testing import CliRunner
 
+from runlens.cli import app
 from runlens.renderer import render_working_report
 from runlens.store import ARTIFACTS_DIR, init_artifacts
 
@@ -54,3 +56,14 @@ def test_render_escapes_spec_fields(isolated_cwd: Path):
     html = report.read_text()
     assert "<script>alert(1)</script>" not in html
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+
+
+def test_cli_render_writes_working_report_only(isolated_cwd: Path):
+    runner = CliRunner()
+    runner.invoke(app, ["init"])
+
+    result = runner.invoke(app, ["render"])
+
+    assert result.exit_code == 0
+    assert (isolated_cwd / ARTIFACTS_DIR / "working" / "report.html").exists()
+    assert not (isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html").exists()

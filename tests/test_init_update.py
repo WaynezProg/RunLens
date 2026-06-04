@@ -3,8 +3,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
+from typer.testing import CliRunner
 
 import runlens.store as store
+from runlens.cli import app
 from runlens.store import (
     ARTIFACTS_DIR,
     init_artifacts,
@@ -119,3 +121,27 @@ def test_run_state_json_does_not_copy_acceptance_criteria(isolated_cwd: Path):
     raw_state = json.loads((isolated_cwd / ARTIFACTS_DIR / "run_state.json").read_text())
 
     assert "acceptance_criteria" not in raw_state
+
+
+def test_cli_init_creates_placeholder_contract(isolated_cwd: Path):
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["init"])
+
+    assert result.exit_code == 0
+    assert (isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml").exists()
+    assert load_spec(isolated_cwd).acceptance_criteria[0].status == "pending"
+
+
+def test_cli_update_writes_run_state_only(isolated_cwd: Path):
+    runner = CliRunner()
+    runner.invoke(app, ["init"])
+    before_spec = (isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml").read_text()
+
+    result = runner.invoke(
+        app, ["update", "--state", "working", "--note", "implemented parser"]
+    )
+
+    assert result.exit_code == 0
+    assert load_state(isolated_cwd).note == "implemented parser"
+    assert (isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml").read_text() == before_spec
