@@ -34,16 +34,25 @@ def render_report(
     return output_path
 
 
-def render_working_report(base: Path, banner: str | None = None) -> Path:
+def render_working_report(
+    base: Path,
+    banner: str | None = None,
+    state: RunState | None = None,
+) -> Path:
     return render_report(
         base=base,
         output_path=base / ARTIFACTS_DIR / "working" / "report.html",
+        state=state,
         banner=banner,
     )
 
 
 def checkpoint_report_path(base: Path, timestamp: str) -> Path:
     return base / ARTIFACTS_DIR / "checkpoints" / f"checkpoint-{timestamp}.html"
+
+
+def final_report_path(base: Path) -> Path:
+    return base / ARTIFACTS_DIR / "deliverables" / "final.html"
 
 
 def render_checkpoint_report(
@@ -57,4 +66,13 @@ def render_checkpoint_report(
         output_path=checkpoint_report_path(base, timestamp),
         state=state,
         banner=f"Checkpoint: {reason}",
+    )
+
+
+def render_final_report(base: Path, state: RunState | None = None) -> Path:
+    return render_report(
+        base=base,
+        output_path=final_report_path(base),
+        state=state,
+        banner="Final: all required acceptance criteria passed.",
     )
