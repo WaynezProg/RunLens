@@ -28,7 +28,7 @@ def now_utc() -> str:
 
 
 def timestamp_for_filename() -> str:
-    return datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
+    return datetime.now(UTC).strftime("%Y%m%d-%H%M%S-%f")
 
 
 def artifacts_root(base: Path) -> Path:
@@ -158,7 +158,7 @@ def init_artifacts(base: Path) -> None:
         )
 
 
-def update_state(
+def build_updated_state(
     base: Path,
     state: RunStatus | str,
     note: str,
@@ -179,6 +179,21 @@ def update_state(
         last_report=last_report if last_report is not None else previous.last_report,
         updated_at=now_utc(),
         history=history,
+    )
+    return next_state
+
+
+def update_state(
+    base: Path,
+    state: RunStatus | str,
+    note: str,
+    last_report: str | None = None,
+) -> RunState:
+    next_state = build_updated_state(
+        base,
+        state=state,
+        note=note,
+        last_report=last_report,
     )
     write_state(base, next_state)
     return next_state

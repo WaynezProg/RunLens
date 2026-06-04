@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -99,3 +100,64 @@ def test_checkpoint_command_creates_checkpoint_and_sets_state(isolated_cwd: Path
     assert "tests not finished" in checkpoints[0].read_text()
     assert load_state(isolated_cwd).state == "checkpoint"
     assert load_state(isolated_cwd).note == "tests not finished"
+
+
+def test_checkpoint_report_and_state_share_checkpoint_last_report(isolated_cwd: Path):
+    runner = CliRunner()
+    invoke_ok(runner, ["init"])
+
+    result = runner.invoke(app, ["checkpoint", "--reason", "sync report path"])
+
+    assert result.exit_code == 0, result.output
+    checkpoints = list(
+        (isolated_cwd / ARTIFACTS_DIR / "checkpoints").glob("checkpoint-*.html")
+    )
+    assert len(checkpoints) == 1
+    checkpoint_report = checkpoints[0]
+    relative_report = checkpoint_report.relative_to(isolated_cwd).as_posix()
+    assert load_state(isolated_cwd).last_report == relative_report
+    assert relative_report in checkpoint_report.read_text()
+
+
+def test_checkpoint_render_failure_preserves_previous_state(isolated_cwd: Path):
+    runner = CliRunner()
+    invoke_ok(runner, ["init"])
+    previous_state = load_state(isolated_cwd)
+    spec_path = isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml"
+    spec_path.write_text("task: [invalid shape]\n", encoding="utf-8")
+
+    result = runner.invoke(app, ["checkpoint", "--reason", "broken spec"])
+
+    assert result.exit_code != 0
+    assert load_state(isolated_cwd) == previous_state
+    assert not list(
+        (isolated_cwd / ARTIFACTS_DIR / "checkpoints").glob("checkpoint-*.html")
+    )
+
+
+def test_checkpoint_commands_in_same_second_create_distinct_files(
+    isolated_cwd: Path, monkeypatch
+):
+    runner = CliRunner()
+    invoke_ok(runner, ["init"])
+
+    class SameSecondDatetime:
+        calls = 0
+
+        @classmethod
+        def now(cls, tz):
+            cls.calls += 1
+            return datetime(2026, 6, 4, 12, 0, 0, cls.calls, tzinfo=UTC)
+
+    monkeypatch.setattr("runlens.store.datetime", SameSecondDatetime)
+
+    first = runner.invoke(app, ["checkpoint", "--reason", "first"])
+    second = runner.invoke(app, ["checkpoint", "--reason", "second"])
+
+    assert first.exit_code == 0, first.output
+    assert second.exit_code == 0, second.output
+    checkpoints = sorted(
+        (isolated_cwd / ARTIFACTS_DIR / "checkpoints").glob("checkpoint-*.html")
+    )
+    assert len(checkpoints) == 2
+    assert len({path.name for path in checkpoints}) == 2

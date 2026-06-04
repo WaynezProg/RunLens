@@ -7,8 +7,13 @@ from typing import TypeVar
 import typer
 
 from runlens.models import RunStatus
-from runlens.renderer import render_checkpoint_report, render_working_report
+from runlens.renderer import (
+    checkpoint_report_path,
+    render_checkpoint_report,
+    render_working_report,
+)
 from runlens.store import (
+    build_updated_state,
     init_artifacts,
     timestamp_for_filename,
     update_state,
@@ -60,12 +65,15 @@ def checkpoint_command(
     def create_checkpoint() -> Path:
         base = Path.cwd()
         timestamp = timestamp_for_filename()
-        state = update_state(base, state=RunStatus.checkpoint, note=reason)
-        output_path = render_checkpoint_report(base, reason=reason, timestamp=timestamp)
-        state_with_report = state.model_copy(
-            update={"last_report": output_path.relative_to(base).as_posix()}
+        output_path = checkpoint_report_path(base, timestamp)
+        state = build_updated_state(
+            base,
+            state=RunStatus.checkpoint,
+            note=reason,
+            last_report=output_path.relative_to(base).as_posix(),
         )
-        write_state(base, state_with_report)
+        render_checkpoint_report(base, reason=reason, timestamp=timestamp, state=state)
+        write_state(base, state)
         return output_path
 
     output_path = _run_initialized_command(create_checkpoint)

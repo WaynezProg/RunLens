@@ -42,12 +42,19 @@ def render_working_report(base: Path, banner: str | None = None) -> Path:
     )
 
 
-def render_checkpoint_report(base: Path, reason: str, timestamp: str) -> Path:
-    output_path = (
-        base / ARTIFACTS_DIR / "checkpoints" / f"checkpoint-{timestamp}.html"
-    )
+def checkpoint_report_path(base: Path, timestamp: str) -> Path:
+    return base / ARTIFACTS_DIR / "checkpoints" / f"checkpoint-{timestamp}.html"
+
+
+def render_checkpoint_report(
+    base: Path,
+    reason: str,
+    timestamp: str,
+    state: RunState | None = None,
+) -> Path:
     return render_report(
         base=base,
-        output_path=output_path,
+        output_path=checkpoint_report_path(base, timestamp),
+        state=state,
         banner=f"Checkpoint: {reason}",
     )
