@@ -145,6 +145,11 @@ def test_finalize_blocked_missing_spec_removes_existing_final_and_sets_blocked(
 def test_finalize_empty_blocked_reason_does_not_finalize(isolated_cwd: Path):
     runner = CliRunner()
     invoke_ok(runner, ["init"])
+    invoke_ok(
+        runner,
+        ["update", "--state", "working", "--note", "still working"],
+    )
+    previous_state = load_state(isolated_cwd)
     write_criteria(
         isolated_cwd,
         [
@@ -161,11 +166,11 @@ def test_finalize_empty_blocked_reason_does_not_finalize(isolated_cwd: Path):
     result = runner.invoke(app, ["finalize", "--blocked-reason", ""])
 
     assert result.exit_code == 1
-    assert load_state(isolated_cwd).state == "blocked"
+    assert load_state(isolated_cwd) == previous_state
     assert not (
         isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"
     ).exists()
-    assert "Blocked reason is empty" in result.output
+    assert "Blocked reason cannot be empty" in result.output
 
 
 def test_finalize_requires_evidence_for_passed_required_criteria(

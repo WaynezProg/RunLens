@@ -152,11 +152,8 @@ def finalize_command(
         if blocked_reason is not None:
             reason = blocked_reason.strip()
             if not reason:
-                block_finalize(
-                    base,
-                    note="Blocked reason is empty.",
-                    banner="Blocked reason is empty.",
-                )
+                typer.echo("Blocked reason cannot be empty.", err=True)
+                raise typer.Exit(1)
             block_finalize(
                 base,
                 note=reason,

@@ -16,3 +16,8 @@ runlens checkpoint --reason "Useful progress before tests"
 runlens finalize
 runlens finalize --blocked-reason "Missing access token"
 ~~~
+
+## Runtime Artifacts
+
+Project-local `.agent-artifacts/` directories are runtime state and are ignored by git.
+The dogfood closeout example is committed under `examples/self-run/.agent-artifacts/`.
