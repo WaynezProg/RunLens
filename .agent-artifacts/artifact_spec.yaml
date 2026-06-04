@@ -5,7 +5,7 @@ acceptance_criteria:
 - id: pytest
   description: Full pytest suite passes.
   status: passed
-  evidence: "uv run pytest -q: 39 passed"
+  evidence: "uv run pytest -q: 43 passed"
   required: true
 - id: cli-help
   description: CLI exposes init, update, render, checkpoint, and finalize.

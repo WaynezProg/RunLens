@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from pathlib import Path
 from typing import TypeVar
@@ -31,6 +32,24 @@ from runlens.store import (
 
 app = typer.Typer(help="Manage RunLens .agent-artifacts.")
 T = TypeVar("T")
+ARTIFACT_DATA_ERRORS = (
+    json.JSONDecodeError,
+    yaml.YAMLError,
+    ValidationError,
+    TypeError,
+    ValueError,
+)
+
+
+def _brief_artifact_error(error: Exception) -> str:
+    if isinstance(error, ValidationError):
+        first_error = error.errors()[0] if error.errors() else {}
+        location = ".".join(str(part) for part in first_error.get("loc", ()))
+        message = str(first_error.get("msg", "schema validation failed"))
+        return f"{location}: {message}" if location else message
+
+    message = str(error).strip().splitlines()
+    return message[0] if message else error.__class__.__name__
 
 
 def _run_initialized_command(action: Callable[[], T]) -> T:
@@ -38,6 +57,12 @@ def _run_initialized_command(action: Callable[[], T]) -> T:
         return action()
     except FileNotFoundError:
         typer.echo("Run runlens init first: .agent-artifacts not initialized.", err=True)
+        raise typer.Exit(1) from None
+    except ARTIFACT_DATA_ERRORS as error:
+        typer.echo(
+            f"Invalid RunLens artifact data: {_brief_artifact_error(error)}",
+            err=True,
+        )
         raise typer.Exit(1) from None
 
 
