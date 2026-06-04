@@ -55,6 +55,13 @@ When changing behavior, write or update tests first and watch them fail before i
 - Chart support is metadata passthrough / table fallback only; do not infer chart types in the MVP.
 - Keep artifacts metadata-only: path, type, title, status. Do not store large HTML bodies or datasets in YAML.
 
+## CodeGraph
+
+- This repository is CodeGraph-initialized.
+- Use CodeGraph tools for structural questions such as symbol lookup, callers, callees, impact, and project file structure.
+- Use `rg` for literal strings, config values, logs, and generated artifact text.
+- Commit `.codegraph/.gitignore` and agent-facing rules only; do not commit `.codegraph` database files.
+
 ## Git Hygiene
 
 - Do not use `git add .`.
