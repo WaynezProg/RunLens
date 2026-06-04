@@ -134,6 +134,38 @@ def test_finalize_requires_evidence_for_passed_required_criteria(
     ).exists()
 
 
+def test_finalize_fails_when_no_required_criteria(isolated_cwd: Path):
+    runner = CliRunner()
+    invoke_ok(runner, ["init"])
+    write_criteria(
+        isolated_cwd,
+        [
+            {
+                "id": "optional-pending",
+                "description": "Optional pending criterion",
+                "status": "pending",
+                "evidence": None,
+                "required": False,
+            },
+            {
+                "id": "optional-passed",
+                "description": "Optional passed criterion",
+                "status": "passed",
+                "evidence": "manual check",
+                "required": False,
+            },
+        ],
+    )
+
+    result = runner.invoke(app, ["finalize"])
+
+    assert result.exit_code == 1
+    assert load_state(isolated_cwd).state == "failed"
+    assert not (
+        isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"
+    ).exists()
+
+
 def test_finalize_failed_removes_existing_final_html(isolated_cwd: Path):
     runner = CliRunner()
     invoke_ok(runner, ["init"])
@@ -169,6 +201,39 @@ def test_finalize_failed_removes_existing_final_html(isolated_cwd: Path):
     assert not (
         isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"
     ).exists()
+
+
+def test_finalize_invalid_spec_removes_existing_final_and_sets_failed(
+    isolated_cwd: Path,
+):
+    runner = CliRunner()
+    invoke_ok(runner, ["init"])
+    write_criteria(
+        isolated_cwd,
+        [
+            {
+                "id": "tests",
+                "description": "Tests pass",
+                "status": "passed",
+                "evidence": "uv run pytest -q: passed",
+                "required": True,
+            }
+        ],
+    )
+    invoke_ok(runner, ["finalize"])
+    spec_path = isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml"
+    spec = yaml.safe_load(spec_path.read_text())
+    spec["acceptance_criteria"] = []
+    spec_path.write_text(yaml.safe_dump(spec, sort_keys=False))
+
+    result = runner.invoke(app, ["finalize"])
+
+    assert result.exit_code == 1
+    assert load_state(isolated_cwd).state == "failed"
+    assert not (
+        isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"
+    ).exists()
+    assert (isolated_cwd / ARTIFACTS_DIR / "working" / "report.html").exists()
 
 
 def test_finalize_uses_artifact_spec_not_run_state_note(isolated_cwd: Path):

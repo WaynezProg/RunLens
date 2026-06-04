@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import TypeVar
 
 import typer
+import yaml
+from pydantic import ValidationError
 
 from runlens.models import RunStatus
 from runlens.renderer import (
@@ -17,6 +19,7 @@ from runlens.renderer import (
 from runlens.store import (
     WORKING_REPORT,
     build_updated_state,
+    default_spec,
     init_artifacts,
     load_spec,
     timestamp_for_filename,
@@ -69,6 +72,23 @@ def finalize_command(
     def remove_final_report(base: Path) -> None:
         final_report_path(base).unlink(missing_ok=True)
 
+    def fail_finalize(base: Path, note: str, banner: str, spec_is_valid: bool) -> None:
+        state = build_updated_state(
+            base,
+            state=RunStatus.failed,
+            note=note,
+            last_report=WORKING_REPORT,
+        )
+        render_working_report(
+            base,
+            banner=banner,
+            state=state,
+            spec=default_spec() if not spec_is_valid else None,
+        )
+        remove_final_report(base)
+        write_state(base, state)
+        raise typer.Exit(1)
+
     def finalize_run() -> Path:
         base = Path.cwd()
         if blocked_reason:
@@ -87,22 +107,25 @@ def finalize_command(
             write_state(base, state)
             raise typer.Exit(1)
 
-        spec = load_spec(base)
+        try:
+            spec = load_spec(base)
+        except FileNotFoundError:
+            raise
+        except (TypeError, ValueError, ValidationError, yaml.YAMLError):
+            fail_finalize(
+                base,
+                note="artifact_spec.yaml is invalid.",
+                banner="Failed: artifact_spec.yaml is invalid.",
+                spec_is_valid=False,
+            )
+
         if not spec.required_criteria_passed():
-            state = build_updated_state(
+            fail_finalize(
                 base,
-                state=RunStatus.failed,
                 note="Required acceptance criteria did not pass.",
-                last_report=WORKING_REPORT,
-            )
-            render_working_report(
-                base,
                 banner="Failed: required acceptance criteria did not pass.",
-                state=state,
+                spec_is_valid=True,
             )
-            remove_final_report(base)
-            write_state(base, state)
-            raise typer.Exit(1)
 
         final_report = final_report_path(base)
         state = build_updated_state(

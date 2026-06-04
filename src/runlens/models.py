@@ -52,10 +52,11 @@ class ArtifactSpec(StrictModel):
     charts: list[MetadataItem] = Field(default_factory=list)
 
     def required_criteria_passed(self) -> bool:
-        return all(
-            criterion.has_passing_evidence
-            for criterion in self.acceptance_criteria
-            if criterion.required
+        required_criteria = [
+            criterion for criterion in self.acceptance_criteria if criterion.required
+        ]
+        return bool(required_criteria) and all(
+            criterion.has_passing_evidence for criterion in required_criteria
         )
 
 

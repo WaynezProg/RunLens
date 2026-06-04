@@ -38,10 +38,12 @@ def render_working_report(
     base: Path,
     banner: str | None = None,
     state: RunState | None = None,
+    spec: ArtifactSpec | None = None,
 ) -> Path:
     return render_report(
         base=base,
         output_path=base / ARTIFACTS_DIR / "working" / "report.html",
+        spec=spec,
         state=state,
         banner=banner,
     )
