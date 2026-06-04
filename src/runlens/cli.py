@@ -17,7 +17,9 @@ from runlens.renderer import (
     render_working_report,
 )
 from runlens.store import (
+    STATE_FILE,
     WORKING_REPORT,
+    artifacts_root,
     build_updated_state,
     default_spec,
     init_artifacts,
@@ -110,6 +112,13 @@ def finalize_command(
         try:
             spec = load_spec(base)
         except FileNotFoundError:
+            if (artifacts_root(base) / STATE_FILE).exists():
+                fail_finalize(
+                    base,
+                    note="artifact_spec.yaml is missing.",
+                    banner="Failed: artifact_spec.yaml is missing.",
+                    spec_is_valid=False,
+                )
             raise
         except (TypeError, ValueError, ValidationError, yaml.YAMLError):
             fail_finalize(

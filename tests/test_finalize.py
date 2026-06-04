@@ -236,6 +236,39 @@ def test_finalize_invalid_spec_removes_existing_final_and_sets_failed(
     assert (isolated_cwd / ARTIFACTS_DIR / "working" / "report.html").exists()
 
 
+def test_finalize_missing_spec_removes_existing_final_and_sets_failed(
+    isolated_cwd: Path,
+):
+    runner = CliRunner()
+    invoke_ok(runner, ["init"])
+    write_criteria(
+        isolated_cwd,
+        [
+            {
+                "id": "tests",
+                "description": "Tests pass",
+                "status": "passed",
+                "evidence": "uv run pytest -q: passed",
+                "required": True,
+            }
+        ],
+    )
+    invoke_ok(runner, ["finalize"])
+    spec_path = isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml"
+    spec_path.unlink()
+
+    result = runner.invoke(app, ["finalize"])
+
+    assert result.exit_code == 1
+    assert load_state(isolated_cwd).state == "failed"
+    assert not (
+        isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html"
+    ).exists()
+    report = isolated_cwd / ARTIFACTS_DIR / "working" / "report.html"
+    assert report.exists()
+    assert "artifact_spec.yaml" in (result.output + report.read_text())
+
+
 def test_finalize_uses_artifact_spec_not_run_state_note(isolated_cwd: Path):
     runner = CliRunner()
     invoke_ok(runner, ["init"])
