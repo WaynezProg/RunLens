@@ -1,8 +1,10 @@
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
 
+import runlens.store as store
 from runlens.store import (
     ARTIFACTS_DIR,
     init_artifacts,
@@ -48,6 +50,30 @@ def test_update_changes_state_files_but_not_acceptance_criteria(isolated_cwd: Pa
     assert "implemented parser" in (isolated_cwd / ARTIFACTS_DIR / "RUN_STATE.md").read_text()
     assert (isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml").read_text() == before_spec
     assert load_spec(isolated_cwd).acceptance_criteria[0].id == "define-criteria"
+
+
+def test_update_changes_updated_at_when_run_immediately_after_init(
+    isolated_cwd: Path, monkeypatch
+):
+    timestamps = iter(
+        [
+            datetime(2026, 6, 4, 12, 0, 0, 100, tzinfo=UTC),
+            datetime(2026, 6, 4, 12, 0, 0, 200, tzinfo=UTC),
+        ]
+    )
+
+    class SameSecondDatetime:
+        @classmethod
+        def now(cls, tz):
+            return next(timestamps)
+
+    monkeypatch.setattr(store, "datetime", SameSecondDatetime)
+
+    init_artifacts(isolated_cwd)
+    previous = load_state(isolated_cwd)
+    updated = update_state(isolated_cwd, state="working", note="implemented parser")
+
+    assert updated.updated_at != previous.updated_at
 
 
 def test_run_state_json_does_not_copy_acceptance_criteria(isolated_cwd: Path):

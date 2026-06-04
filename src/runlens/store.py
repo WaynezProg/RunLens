@@ -24,7 +24,7 @@ WORKING_REPORT = f"{ARTIFACTS_DIR}/working/report.html"
 
 
 def now_utc() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def artifacts_root(base: Path) -> Path:
