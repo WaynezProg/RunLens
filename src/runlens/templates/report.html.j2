@@ -75,6 +75,36 @@
     .muted {
       color: var(--muted);
     }
+
+    .gate {
+      border: 1px solid var(--border);
+      border-left-width: 6px;
+      border-radius: 4px;
+      margin: 20px 0 8px;
+      padding: 12px 16px;
+    }
+
+    .gate h2 {
+      border: 0;
+      margin: 0 0 6px;
+      padding: 0;
+    }
+
+    .gate-pass {
+      background: #eef9f0;
+      border-left-color: #2f9e44;
+    }
+
+    .gate-fail {
+      background: #fdecec;
+      border-left-color: #d64545;
+    }
+
+    .gate-verdict {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
   </style>
 </head>
 <body>
@@ -85,6 +115,30 @@
 
     <h1>{{ spec.task.title }}</h1>
     <p>{{ spec.task.description }}</p>
+
+    {% if gate %}
+    <section class="gate gate-{{ 'pass' if gate.gate_passed else 'fail' }}">
+      <h2>Gate summary</h2>
+      <p class="gate-verdict">Gate: {{ "PASS" if gate.gate_passed else "FAIL" }}
+        &mdash; {{ "ready to finalize" if gate.gate_passed else "not ready to finalize" }}</p>
+      <p>State: <strong>{{ state.state }}</strong>{% if state.note %} &mdash; {{ state.note }}{% endif %}</p>
+      <p>Required criteria: {{ gate.passed }} passed / {{ gate.required_total }} total
+        ({{ gate.pending }} pending, {{ gate.failed }} failed).</p>
+      {% if gate.gate_passed %}
+      <p class="muted">All required acceptance criteria passed with evidence.</p>
+      {% elif gate.required_total == 0 %}
+      <p>No required acceptance criteria defined &mdash; finalize stays blocked until at
+        least one required criterion passes with evidence.</p>
+      {% else %}
+      <p>Unmet required criteria:</p>
+      <ul>
+        {% for item in gate.unmet_required %}
+        <li><strong>{{ item.id }}</strong> &mdash; {{ item.reason }}: {{ item.description }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </section>
+    {% endif %}
 
     <h2>Run state</h2>
     <table>

@@ -1,6 +1,6 @@
 [project]
 name = "runlens"
-version = "0.4.0"
+version = "0.5.0"
 description = "Filesystem-first artifact protocol and CLI for coding agents."
 readme = "README.md"
 authors = [

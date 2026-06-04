@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Literal
 
@@ -45,6 +46,26 @@ class MetadataItem(StrictModel):
     status: str
 
 
+@dataclass(frozen=True)
+class UnmetCriterion:
+    id: str
+    description: str
+    status: str
+    reason: str
+
+
+@dataclass(frozen=True)
+class GateSummary:
+    """Presentation-only view of the finalize gate; never persisted."""
+
+    gate_passed: bool
+    required_total: int
+    passed: int
+    pending: int
+    failed: int
+    unmet_required: list[UnmetCriterion] = field(default_factory=list)
+
+
 class ArtifactSpec(StrictModel):
     task: TaskInfo
     acceptance_criteria: list[AcceptanceCriterion] = Field(min_length=1)
@@ -57,6 +78,36 @@ class ArtifactSpec(StrictModel):
         ]
         return bool(required_criteria) and all(
             criterion.has_passing_evidence for criterion in required_criteria
+        )
+
+    def gate_summary(self) -> GateSummary:
+        """Derive a readable gate verdict. PASS/FAIL mirrors the real gate exactly."""
+        required = [c for c in self.acceptance_criteria if c.required]
+        unmet: list[UnmetCriterion] = []
+        for criterion in required:
+            if criterion.has_passing_evidence:
+                continue
+            if criterion.status == "passed":
+                reason = "passed but missing evidence"
+            elif criterion.status == "failed":
+                reason = "marked failed"
+            else:
+                reason = "pending"
+            unmet.append(
+                UnmetCriterion(
+                    id=criterion.id,
+                    description=criterion.description,
+                    status=criterion.status,
+                    reason=reason,
+                )
+            )
+        return GateSummary(
+            gate_passed=self.required_criteria_passed(),
+            required_total=len(required),
+            passed=sum(1 for c in required if c.status == "passed"),
+            pending=sum(1 for c in required if c.status == "pending"),
+            failed=sum(1 for c in required if c.status == "failed"),
+            unmet_required=unmet,
         )
 
 

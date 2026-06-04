@@ -72,6 +72,8 @@ When changing behavior, write or update tests first and watch them fail before i
 
 - Keep report HTML static and readable.
 - Jinja output must remain autoescaped.
+- Gate summary is a read-only presentation of `required_criteria_passed()` for
+  report readability; do not make it a second finalize gate.
 - Charts are Vega-Lite `.vl.json` specs referenced by path. The renderer pre-renders
   them to inline SVG via vl-convert, with a data-table/link fallback when a spec is
   missing or invalid. Do not infer chart types or synthesize charts from raw data.

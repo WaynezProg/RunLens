@@ -44,6 +44,9 @@ Layers (each module has one job; the CLI is the only place they compose):
   `RunStatus` enum (`working → checkpoint/blocked/failed/final`) is the state machine.
   `ArtifactSpec.required_criteria_passed()` is the single source of the finalize gate:
   every `required` criterion must be `passed` **and** carry non-empty `evidence`.
+  `ArtifactSpec.gate_summary()` is the read-only presentation of that same gate for the
+  report (PASS/FAIL verdict + unmet-required list); its verdict must never diverge from
+  `required_criteria_passed()`.
 - `store.py` — filesystem protocol: path constants, dir scaffolding, and read/write of
   the two state files. `build_updated_state()` appends the prior snapshot to `history`
   on every transition. Writing state also re-renders `RUN_STATE.md`.

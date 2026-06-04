@@ -32,6 +32,7 @@ def render_report(
         state=resolved_state,
         banner=banner,
         charts=rendered_charts,
+        gate=resolved_spec.gate_summary(),
     )
     output_path.write_text(html, encoding="utf-8")
     return output_path
