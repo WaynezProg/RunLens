@@ -5,7 +5,7 @@ from typer.testing import CliRunner
 
 from runlens.cli import app
 from runlens.renderer import render_working_report
-from runlens.store import ARTIFACTS_DIR, init_artifacts
+from runlens.store import ARTIFACTS_DIR, init_artifacts, load_state
 
 
 def invoke_ok(runner: CliRunner, args: list[str]):
@@ -84,3 +84,18 @@ def test_cli_render_before_init_exits_with_user_facing_error(isolated_cwd: Path)
     assert "Run runlens init first" in result.output
     assert "Traceback" not in result.output
     assert "FileNotFoundError" not in result.output
+
+
+def test_checkpoint_command_creates_checkpoint_and_sets_state(isolated_cwd: Path):
+    runner = CliRunner()
+    init_result = runner.invoke(app, ["init"])
+    assert init_result.exit_code == 0
+
+    result = runner.invoke(app, ["checkpoint", "--reason", "tests not finished"])
+
+    assert result.exit_code == 0
+    checkpoints = list((isolated_cwd / ARTIFACTS_DIR / "checkpoints").glob("checkpoint-*.html"))
+    assert len(checkpoints) == 1
+    assert "tests not finished" in checkpoints[0].read_text()
+    assert load_state(isolated_cwd).state == "checkpoint"
+    assert load_state(isolated_cwd).note == "tests not finished"

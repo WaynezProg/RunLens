@@ -27,6 +27,10 @@ def now_utc() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
+def timestamp_for_filename() -> str:
+    return datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
+
+
 def artifacts_root(base: Path) -> Path:
     return base / ARTIFACTS_DIR
 

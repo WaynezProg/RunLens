@@ -7,8 +7,13 @@ from typing import TypeVar
 import typer
 
 from runlens.models import RunStatus
-from runlens.renderer import render_working_report
-from runlens.store import init_artifacts, update_state
+from runlens.renderer import render_checkpoint_report, render_working_report
+from runlens.store import (
+    init_artifacts,
+    timestamp_for_filename,
+    update_state,
+    write_state,
+)
 
 app = typer.Typer(help="Manage RunLens .agent-artifacts.")
 T = TypeVar("T")
@@ -45,4 +50,23 @@ def update_command(
 @app.command("render")
 def render_command() -> None:
     output_path = _run_initialized_command(lambda: render_working_report(Path.cwd()))
+    typer.echo(output_path)
+
+
+@app.command("checkpoint")
+def checkpoint_command(
+    reason: str = typer.Option(..., "--reason"),
+) -> None:
+    def create_checkpoint() -> Path:
+        base = Path.cwd()
+        timestamp = timestamp_for_filename()
+        state = update_state(base, state=RunStatus.checkpoint, note=reason)
+        output_path = render_checkpoint_report(base, reason=reason, timestamp=timestamp)
+        state_with_report = state.model_copy(
+            update={"last_report": output_path.relative_to(base).as_posix()}
+        )
+        write_state(base, state_with_report)
+        return output_path
+
+    output_path = _run_initialized_command(create_checkpoint)
     typer.echo(output_path)
