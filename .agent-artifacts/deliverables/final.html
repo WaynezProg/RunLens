@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RunLens MVP implementation</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #d7dce2;
+      --muted: #56616f;
+      --page: #ffffff;
+      --panel: #f7f9fb;
+      --text: #111827;
+    }
+
+    body {
+      background: var(--page);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      margin: 0;
+      padding: 32px;
+    }
+
+    main {
+      margin: 0 auto;
+      max-width: 960px;
+    }
+
+    h1, h2 {
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 32px;
+    }
+
+    h2 {
+      border-bottom: 1px solid var(--border);
+      font-size: 20px;
+      margin-top: 32px;
+      padding-bottom: 8px;
+    }
+
+    p {
+      margin: 8px 0 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--panel);
+      font-weight: 600;
+    }
+
+    .banner {
+      background: #fff7d6;
+      border: 1px solid #e7c85f;
+      margin-bottom: 20px;
+      padding: 12px 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main>
+
+    <div class="banner">Final: all required acceptance criteria passed.</div>
+
+
+    <h1>RunLens MVP implementation</h1>
+    <p>Python CLI MVP for filesystem-first agent artifact reports.</p>
+
+    <h2>Run state</h2>
+    <table>
+      <tbody>
+        <tr>
+          <th scope="row">State</th>
+          <td>final</td>
+        </tr>
+        <tr>
+          <th scope="row">Updated at</th>
+          <td>2026-06-04T10:36:52.915660Z</td>
+        </tr>
+        <tr>
+          <th scope="row">Last report</th>
+          <td>.agent-artifacts/deliverables/final.html</td>
+        </tr>
+        <tr>
+          <th scope="row">Note</th>
+          <td>All required acceptance criteria passed.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Acceptance criteria</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Required</th>
+          <th>Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td>pytest</td>
+          <td>Full pytest suite passes.</td>
+          <td>passed</td>
+          <td>True</td>
+          <td>uv run pytest -q: 39 passed</td>
+        </tr>
+
+        <tr>
+          <td>cli-help</td>
+          <td>CLI exposes init, update, render, checkpoint, and finalize.</td>
+          <td>passed</td>
+          <td>True</td>
+          <td>uv run runlens --help lists all MVP commands</td>
+        </tr>
+
+        <tr>
+          <td>final-gate</td>
+          <td>finalize refuses final.html unless required criteria pass with evidence.</td>
+          <td>passed</td>
+          <td>True</td>
+          <td>tests/test_finalize.py covers failed, blocked, missing/invalid spec, no-checkpoint, evidence, and success paths</td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <h2>Artifact metadata</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Path</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td>Working report</td>
+          <td>html</td>
+          <td>ready</td>
+          <td>.agent-artifacts/working/report.html</td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <h2>Chart metadata</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Path</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td colspan="4" class="muted">No chart metadata.</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

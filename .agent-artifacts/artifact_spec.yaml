@@ -1,0 +1,25 @@
+task:
+  title: RunLens MVP implementation
+  description: Python CLI MVP for filesystem-first agent artifact reports.
+acceptance_criteria:
+- id: pytest
+  description: Full pytest suite passes.
+  status: passed
+  evidence: "uv run pytest -q: 39 passed"
+  required: true
+- id: cli-help
+  description: CLI exposes init, update, render, checkpoint, and finalize.
+  status: passed
+  evidence: "uv run runlens --help lists all MVP commands"
+  required: true
+- id: final-gate
+  description: finalize refuses final.html unless required criteria pass with evidence.
+  status: passed
+  evidence: "tests/test_finalize.py covers failed, blocked, missing/invalid spec, no-checkpoint, evidence, and success paths"
+  required: true
+artifacts:
+- path: .agent-artifacts/working/report.html
+  type: html
+  title: Working report
+  status: ready
+charts: []
