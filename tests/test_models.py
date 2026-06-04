@@ -36,6 +36,17 @@ def test_acceptance_criterion_rejects_unknown_status():
         )
 
 
+def test_acceptance_criterion_rejects_non_boolean_required():
+    with pytest.raises(ValidationError):
+        AcceptanceCriterion(
+            id="bad-required",
+            description="Bad required type",
+            status="pending",
+            evidence=None,
+            required="true",
+        )
+
+
 def test_artifact_spec_requires_at_least_one_criterion():
     with pytest.raises(ValidationError):
         ArtifactSpec(

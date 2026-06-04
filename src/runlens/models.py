@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
 
 CriterionStatus = Literal["pending", "passed", "failed"]
@@ -31,7 +31,7 @@ class AcceptanceCriterion(StrictModel):
     description: str
     status: CriterionStatus
     evidence: str | None = None
-    required: bool = True
+    required: StrictBool = True
 
     @property
     def has_passing_evidence(self) -> bool:
