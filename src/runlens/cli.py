@@ -9,6 +9,12 @@ import typer
 import yaml
 from pydantic import ValidationError
 
+from runlens.criteria import (
+    CriteriaCommandError,
+    add_criterion,
+    reset_criterion,
+    set_criterion_status,
+)
 from runlens.models import ArtifactSpec, RunStatus
 from runlens.renderer import (
     checkpoint_report_path,
@@ -27,10 +33,13 @@ from runlens.store import (
     load_spec,
     timestamp_for_filename,
     update_state,
+    write_spec,
     write_state,
 )
 
 app = typer.Typer(help="Manage RunLens .agent-artifacts.")
+criteria_app = typer.Typer(help="Maintain artifact_spec.yaml acceptance criteria.")
+app.add_typer(criteria_app, name="criteria")
 T = TypeVar("T")
 ARTIFACT_DATA_ERRORS = (
     json.JSONDecodeError,
@@ -66,9 +75,112 @@ def _run_initialized_command(action: Callable[[], T]) -> T:
         raise typer.Exit(1) from None
 
 
+def _run_criteria_command(action: Callable[[], T]) -> T:
+    try:
+        return _run_initialized_command(action)
+    except CriteriaCommandError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(1) from None
+
+
+def _load_update_write_spec(
+    mutator: Callable[[ArtifactSpec], ArtifactSpec],
+) -> ArtifactSpec:
+    base = Path.cwd()
+    spec = load_spec(base)
+    next_spec = mutator(spec)
+    write_spec(base, next_spec)
+    return next_spec
+
+
 @app.callback()
 def _main() -> None:
     """Manage RunLens .agent-artifacts."""
+
+
+@criteria_app.command("list")
+def criteria_list_command() -> None:
+    def list_criteria() -> list[str]:
+        spec = load_spec(Path.cwd())
+        return [
+            (
+                f"{criterion.id}\t{criterion.status}\t"
+                f"required={str(criterion.required).lower()}\t"
+                f"evidence={criterion.evidence or ''}\t"
+                f"{criterion.description}"
+            )
+            for criterion in spec.acceptance_criteria
+        ]
+
+    for line in _run_initialized_command(list_criteria):
+        typer.echo(line)
+
+
+@criteria_app.command("add")
+def criteria_add_command(
+    criterion_id: str = typer.Option(..., "--id"),
+    description: str = typer.Option(..., "--description"),
+    required: bool = typer.Option(False, "--required"),
+) -> None:
+    _run_criteria_command(
+        lambda: _load_update_write_spec(
+            lambda spec: add_criterion(
+                spec,
+                criterion_id=criterion_id,
+                description=description,
+                required=required,
+            )
+        )
+    )
+    typer.echo(f"Added criterion: {criterion_id}")
+
+
+@criteria_app.command("pass")
+def criteria_pass_command(
+    criterion_id: str = typer.Option(..., "--id"),
+    evidence: str = typer.Option(..., "--evidence"),
+) -> None:
+    _run_criteria_command(
+        lambda: _load_update_write_spec(
+            lambda spec: set_criterion_status(
+                spec,
+                criterion_id=criterion_id,
+                status="passed",
+                evidence=evidence,
+            )
+        )
+    )
+    typer.echo(f"Passed criterion: {criterion_id}")
+
+
+@criteria_app.command("fail")
+def criteria_fail_command(
+    criterion_id: str = typer.Option(..., "--id"),
+    evidence: str = typer.Option(..., "--evidence"),
+) -> None:
+    _run_criteria_command(
+        lambda: _load_update_write_spec(
+            lambda spec: set_criterion_status(
+                spec,
+                criterion_id=criterion_id,
+                status="failed",
+                evidence=evidence,
+            )
+        )
+    )
+    typer.echo(f"Failed criterion: {criterion_id}")
+
+
+@criteria_app.command("reset")
+def criteria_reset_command(
+    criterion_id: str = typer.Option(..., "--id"),
+) -> None:
+    _run_criteria_command(
+        lambda: _load_update_write_spec(
+            lambda spec: reset_criterion(spec, criterion_id=criterion_id)
+        )
+    )
+    typer.echo(f"Reset criterion: {criterion_id}")
 
 
 @app.command("init")
