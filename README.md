@@ -1,12 +1,13 @@
 # RunLens
 
-RunLens is a filesystem-first artifact protocol and CLI for coding agents.
+RunLens is being scaffolded as a filesystem-first artifact protocol and CLI for
+coding agents.
 
-The MVP manages `.agent-artifacts/`, renders static HTML reports, and only writes
-`.agent-artifacts/deliverables/final.html` after required acceptance criteria in
-`artifact_spec.yaml` pass with evidence.
+The MVP target is to manage `.agent-artifacts/`, render static HTML reports, and
+only write `.agent-artifacts/deliverables/final.html` after required acceptance
+criteria in `artifact_spec.yaml` pass with evidence.
 
-## Commands
+## MVP Target Commands
 
 ~~~bash
 runlens init

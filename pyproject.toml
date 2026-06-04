@@ -1,7 +1,7 @@
 [project]
 name = "runlens"
 version = "0.1.0"
-description = "Add your description here"
+description = "Filesystem-first artifact protocol and CLI for coding agents."
 readme = "README.md"
 authors = [
     { name = "WayneZcode", email = "87684399+WaynezProg@users.noreply.github.com" }
