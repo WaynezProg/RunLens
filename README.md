@@ -21,3 +21,12 @@ runlens finalize --blocked-reason "Missing access token"
 
 Project-local `.agent-artifacts/` directories are runtime state and are ignored by git.
 The dogfood closeout example is committed under `examples/self-run/.agent-artifacts/`.
+
+## Agent Adapters
+
+RunLens keeps the core protocol in the CLI and exposes thin adapter examples for
+agent-specific instruction systems:
+
+- `AGENTS.md`: project rules for Codex, Cursor, opencode, Qwen Code, and similar agents.
+- `CLAUDE.md`: Claude Code adapter that points back to the same protocol rules.
+- `examples/adapters/opencode/runlens-artifact-protocol/SKILL.md`: opencode skill adapter example.
