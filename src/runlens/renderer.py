@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader
 
 from runlens.models import ArtifactSpec, RunState
 from runlens.store import ARTIFACTS_DIR, load_spec, load_state
@@ -11,7 +11,7 @@ from runlens.store import ARTIFACTS_DIR, load_spec, load_state
 def template_env() -> Environment:
     return Environment(
         loader=PackageLoader("runlens", "templates"),
-        autoescape=select_autoescape(["html", "xml"]),
+        autoescape=True,
     )
 
 

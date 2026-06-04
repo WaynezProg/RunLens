@@ -40,3 +40,17 @@ def test_chart_metadata_passthrough_appears_as_table_fallback(isolated_cwd: Path
     assert "Revenue trend" in html
     assert "working/charts/chart_001.vl.json" in html
     assert "Chart metadata" in html
+
+
+def test_render_escapes_spec_fields(isolated_cwd: Path):
+    init_artifacts(isolated_cwd)
+    spec_path = isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml"
+    spec = yaml.safe_load(spec_path.read_text())
+    spec["task"]["title"] = "<script>alert(1)</script>"
+    spec_path.write_text(yaml.safe_dump(spec, sort_keys=False))
+
+    report = render_working_report(isolated_cwd)
+
+    html = report.read_text()
+    assert "<script>alert(1)</script>" not in html
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
