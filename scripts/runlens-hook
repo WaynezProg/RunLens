@@ -1,50 +1,51 @@
 #!/usr/bin/env bash
 # runlens-hook — thin wrapper invoked by agent lifecycle hooks.
 # Routes event data into ~/.local/share/runlens/hooks.jsonl
-set -euo pipefail
+#
+# CONTRACT (do not break): a lifecycle hook is best-effort telemetry. This
+# script MUST NEVER crash or block the host agent. Concretely:
+#   - always exit 0, even when uv/runlens cannot be found or the CLI errors;
+#   - write nothing to stdout (agents may parse stdout as a hook protocol reply);
+#   - never let stderr noise escape.
+# GUI-launched agents (e.g. Cursor IDE) spawn hooks with a minimal PATH that
+# lacks Homebrew/mise, so we cannot rely on PATH to locate uv — we probe known
+# install locations ourselves.
 
-HOOK_VERSION="0.1.0"
+HOOK_VERSION="0.2.0"
 
-# Resolve the runlens CLI entrypoint.
-# Strategy: prefer `uv run` (project-local venv), fall back to direct python module.
-resolve_runlens() {
-    # Find RunLens repo root (walk up from hook.py location or CWD)
-    local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# GUI apps give us a minimal PATH. Prepend common tool locations so `uv`
+# (Homebrew / mise / pipx / cargo) is discoverable regardless of how we were
+# spawned. Harmless if some of these directories do not exist.
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$HOME/.local/share/mise/shims:$HOME/.cargo/bin:$PATH"
 
-    # If installed as symlink to ~/.local/bin, resolve real path
-    if [ -L "$0" ]; then
-        script_dir="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+# Drain stdin unconditionally so the caller's pipe never blocks or SIGPIPEs,
+# even if we end up doing nothing with the payload.
+stdin_data="$(cat 2>/dev/null || true)"
+
+# Everything below is best-effort and fully sandboxed: stdout is discarded and
+# any failure is swallowed so the script always reaches `exit 0`.
+{
+    # Resolve the RunLens project root near this script or at the known path.
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || true)"
+    if [ -L "${BASH_SOURCE[0]}" ]; then
+        real_src="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || true)"
+        [ -n "$real_src" ] && script_dir="$(cd "$(dirname "$real_src")" 2>/dev/null && pwd || true)"
     fi
 
-    # Try to find the RunLens project root near the script
-    local repo_root=""
+    repo_root=""
     for candidate in "$script_dir" "$script_dir/.." "$HOME/claw_prog/projects/04-kurisu-github/RunLens"; do
-        if [ -f "$candidate/pyproject.toml" ]; then
+        if [ -n "$candidate" ] && [ -f "$candidate/pyproject.toml" ]; then
             repo_root="$candidate"
             break
         fi
     done
 
-    if [ -n "$repo_root" ] && command -v uv &>/dev/null; then
-        echo "uv run --project $repo_root runlens hook"
-        return 0
+    if [ -n "$repo_root" ] && command -v uv >/dev/null 2>&1; then
+        printf '%s' "$stdin_data" | uv run --project "$repo_root" runlens hook "$@"
+    elif command -v runlens >/dev/null 2>&1; then
+        printf '%s' "$stdin_data" | runlens hook "$@"
     fi
+    # No runtime found → silently do nothing. The host agent must not notice.
+} >/dev/null 2>&1 || true
 
-    # Fallback: try runlens on PATH
-    if command -v runlens &>/dev/null; then
-        echo "runlens hook"
-        return 0
-    fi
-
-    echo "ERROR: runlens-hook cannot find runlens CLI." >&2
-    echo "Install uv (https://docs.astral.sh/uv/) or add runlens to PATH." >&2
-    return 1
-}
-
-RUNLENS_CMD="$(resolve_runlens)"
-
-# Read stdin into a variable (may be empty)
-stdin_data="$(cat)"
-
-exec $RUNLENS_CMD "$@" <<< "$stdin_data"
+exit 0
