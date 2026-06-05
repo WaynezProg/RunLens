@@ -72,19 +72,13 @@ objects and arrays).
 |-----------|-----------|----------------------|------------------|
 | Claude Code | ✓       | ✓                    | ✓                |
 | Codex       | ✓       | ✓                    | ⏳ pending `/hooks trust` |
-| OpenCode    | ✓       | ✓                    | ⚠ plugin-level ✓ / live session ⏳ |
+| OpenCode    | ✓       | ✓                    | ✓                |
 | Cursor      | ✓       | ✓                    | ⏳ pending IDE Agent |
 
 "Direct-call verified" means `runlens-hook --event X --agent Y` writes correct
 events to `hooks.jsonl` for all four agents.
 "Runtime verified" means the agent's native hook/plugin system actually fires
 events during a real session.
-For OpenCode, "plugin-level verified" means the plugin factory and registered
-hook callbacks are wired to `runlens-hook` correctly and write events when
-the documented hooks fire — proven by exercising the hooks directly through
-Bun. The remaining step is a live `opencode serve` / desktop session, which
-requires a configured model provider that is not available in this
-verification environment.
 
 ### Claude Code ✓ (runtime verified)
 
@@ -122,7 +116,7 @@ For testing only: `codex exec --dangerously-bypass-hook-trust ...`
 interactive mode. There is no CLI flag to persist trust without the interactive
 workflow. Sandbox mode may block hook execution.
 
-### OpenCode ⚠ (installed; plugin-level verified; live-session pending)
+### OpenCode ✓ (runtime verified)
 
 | RunLens Event  | OpenCode Plugin Hook             | Trigger                                   |
 |----------------|----------------------------------|-------------------------------------------|
@@ -143,20 +137,17 @@ to the three hooks listed above, all of which appear in the documented
 `Plugin` type in `@opencode-ai/plugin` (verified against v1.3.13 bundled
 with the CLI and v1.16.0 latest).
 
+**Runtime verification**: Verified on 2026-06-05 with `opencode run` on the
+RunLens project. A single session produced all three event types:
+`agent=opencode`, `event=SessionStart` (with `sessionID`),
+`event=PostToolUse` (with `sessionID`, `callID`, `tool`, `title`), and
+`event=Stop` (with `sessionID`, `messageID`, `partID`) — all written to
+`~/.local/share/runlens/hooks.jsonl` with correct `cwd` and `git_repo`.
+
 **Limitation**: `experimental.text.complete` is in OpenCode's experimental
 namespace and may be renamed in a future release. The plugin ignores
 payload fields it does not need and is best-effort: a failed
 `runlens-hook` spawn never crashes the agent.
-
-**Verification (plugin-level)**: loading the deployed `runlens-hooks.ts`
-via Bun, invoking `chat.message`, `tool.execute.after`, and
-`experimental.text.complete` with representative inputs, and tailing
-`hooks.jsonl` confirmed that all three events land as
-`agent: "opencode"` with the expected `raw` payload.
-
-**Verification (live session, pending)**: a real `opencode serve` or
-desktop session is the next step. It requires a configured model
-provider, which was not available in the verification environment.
 
 ### Cursor ⏳ (installed, pending IDE Agent verification)
 
