@@ -71,7 +71,7 @@ objects and arrays).
 | Agent     | Installer | Direct-Call Verified | Runtime Verified |
 |-----------|-----------|----------------------|------------------|
 | Claude Code | ✓       | ✓                    | ✓                |
-| Codex       | ✓       | ✓                    | ✓                |
+| Codex       | ✓       | ✓                    | ⏳ pending `/hooks trust` |
 | OpenCode    | ✓       | ✓                    | ⏳ pending serve/desktop |
 | Cursor      | ✓       | ✓                    | ⏳ pending IDE Agent |
 
@@ -92,7 +92,7 @@ Hooks are merged into `~/.claude/settings.json`. The installer backs up the
 existing file and uses deep JSON merge. If top-level key types conflict (e.g.
 `hooks` is a string instead of an object), the installer aborts.
 
-### Codex ✓ (runtime verified after /hooks trust)
+### Codex ⏳ (installed, pending /hooks trust)
 
 | Event         | Trigger                     |
 |---------------|-----------------------------|
@@ -112,11 +112,6 @@ trusted**.
 
 For testing only: `codex exec --dangerously-bypass-hook-trust ...`
 
-**Runtime verification**: Verified on 2026-06-05 with Codex CLI 0.134.0 after
-interactive `/hooks review` → `/hooks trust`. Starting a new Codex session in
-the RunLens repo appended `agent=codex`, `event=SessionStart`, and
-`raw.source=startup` to `~/.local/share/runlens/hooks.jsonl`.
-
 **Limitation**: Codex's hook trust is per-session and must be done in
 interactive mode. There is no CLI flag to persist trust without the interactive
 workflow. Sandbox mode may block hook execution.
@@ -133,7 +128,8 @@ The installer creates `runlens-hooks.ts` at
 `~/.config/opencode/opencode.json` → `"plugin"` array.
 If the config file doesn't exist, the installer outputs manual instructions.
 
-**Limitation**: Events are limited to what OpenCode's plugin API exposes.
+**Limitation**: `run` mode does not fire plugin hooks — only `serve` mode or
+the desktop app trigger `session.created` and `agent.finished` events.
 
 ### Cursor ⏳ (installed, pending IDE Agent verification)
 
@@ -148,7 +144,8 @@ If the version field is not `1`, it aborts with a warning.
 **Limitation**: IDE hooks are fully supported. CLI hook coverage has historically
 diverged from IDE behavior — the `cursor-agent` CLI does not fire `stop` hooks
 even when hooks.json is correctly configured. Run a local smoke test to confirm
-which events fire in your setup. See the [official Cursor hooks docs](https://docs.cursor.com/context/hooks) for supported events.
+which events fire in your setup. See the
+[official Cursor hooks docs](https://docs.cursor.com/context/hooks) for supported events.
 
 ## Installation
 
@@ -160,8 +157,8 @@ The installer:
 1. Creates `~/.local/share/runlens/` data directory
 2. Installs `scripts/runlens-hook` → `~/.local/bin/runlens-hook`
 3. Configures Claude Code hooks (merges into `~/.claude/settings.json`)
-4. Creates Codex hooks (requires manual `/hooks trust` in Codex)
-5. Creates OpenCode plugin at `~/.config/opencode/plugins/` (auto-loaded)
+4. Creates Codex hooks at `~/.codex/hooks.json` (requires manual `/hooks trust`)
+5. Creates OpenCode plugin at `~/.config/opencode/plugins/` (registered in opencode.json)
 6. Configures Cursor hooks (if Cursor ≥ 1.7 is detected)
 
 **Safety guarantees**:
@@ -199,8 +196,8 @@ bash scripts/uninstall-agent-hooks.sh
 This removes:
 - `~/.local/bin/runlens-hook`
 - Hook entries from `~/.claude/settings.json`
-- Codex plugin directory
-- OpenCode plugin file (`runlens-hooks.ts`)
+- Codex hooks file (`~/.codex/hooks.json`)
+- OpenCode plugin file (`runlens-hooks.ts`) and registration in `opencode.json`
 - Cursor hook entries
 
 **Preserved**:

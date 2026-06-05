@@ -98,3 +98,33 @@ def test_hook_appends_without_overwriting(isolated_cwd: Path, monkeypatch, tmp_p
     events = [json.loads(line) for line in lines]
     assert [e["event"] for e in events] == ["Event0", "Event1", "Event2"]
     assert [e["raw"]["seq"] for e in events] == [0, 1, 2]
+
+
+def test_hook_opencode_event_names(isolated_cwd: Path, monkeypatch, tmp_path: Path):
+    """The three RunLens events emitted by the OpenCode plugin (SessionStart,
+    PostToolUse, Stop) are accepted by the hook CLI and recorded with
+    agent='opencode'. This guards the contract between the OpenCode plugin
+    and the Python hook CLI."""
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+
+    runner = CliRunner()
+    payloads = {
+        "SessionStart": {"sessionID": "s-1", "agent": "build", "messageID": "m-1"},
+        "PostToolUse": {"sessionID": "s-1", "callID": "c-1", "tool": "bash", "title": "ls"},
+        "Stop": {"sessionID": "s-1", "messageID": "m-1", "partID": "p-1"},
+    }
+    for event, payload in payloads.items():
+        cli_result = runner.invoke(
+            cli_app,
+            ["hook", "--event", event, "--agent", "opencode"],
+            input=json.dumps(payload),
+        )
+        assert cli_result.exit_code == 0, cli_result.output
+
+    jsonl_file = tmp_path / "runlens" / "hooks.jsonl"
+    events = [json.loads(line) for line in jsonl_file.read_text().strip().splitlines()]
+    assert [e["event"] for e in events] == ["SessionStart", "PostToolUse", "Stop"]
+    assert all(e["agent"] == "opencode" for e in events)
+    assert events[0]["raw"]["sessionID"] == "s-1"
+    assert events[1]["raw"]["tool"] == "bash"
+    assert events[2]["raw"]["partID"] == "p-1"

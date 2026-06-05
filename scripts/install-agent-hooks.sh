@@ -253,30 +253,58 @@ configure_opencode() {
     cat > "$plugin_dir/runlens-hooks.ts" << 'TS'
 // RunLens hook adapter for OpenCode
 // Registered in: ~/.config/opencode/opencode.json → "plugin" array
+//
+// Event mapping (OpenCode 1.15+ plugin API → RunLens canonical events):
+//   chat.message              → SessionStart  (session receives its first user message)
+//   tool.execute.after        → PostToolUse   (any tool finished in the session)
+//   experimental.text.complete → Stop          (final text part of the assistant turn)
 
 import type { Plugin } from "@opencode-ai/plugin"
+import { spawn } from "child_process"
 
 const HOOK_BIN = `${process.env.HOME}/.local/bin/runlens-hook`
 
-function fire(event: string): Promise<void> {
-  return new Promise((resolve) => {
-    const { execFile } = require("child_process")
-    execFile(
+function fire(event: string, payload: unknown): void {
+  try {
+    const child = spawn(
       HOOK_BIN,
       ["--event", event, "--agent", "opencode"],
-      { stdio: ["ignore", "ignore", "ignore"] },
-      () => resolve()
+      { stdio: ["pipe", "ignore", "ignore"] }
     )
-  })
+    child.stdin.write(JSON.stringify(payload ?? {}))
+    child.stdin.end()
+    child.on("error", () => {
+      // best-effort: never let a hook failure crash the agent
+    })
+  } catch {
+    // best-effort
+  }
 }
 
 export const RunLensHooksPlugin: Plugin = async () => {
   return {
-    "session.created": async () => {
-      await fire("session.created")
+    "chat.message": async (input) => {
+      fire("SessionStart", {
+        sessionID: input.sessionID,
+        agent: input.agent,
+        model: input.model,
+        messageID: input.messageID,
+      })
     },
-    "agent.finished": async () => {
-      await fire("agent.finished")
+    "tool.execute.after": async (input, output) => {
+      fire("PostToolUse", {
+        sessionID: input.sessionID,
+        callID: input.callID,
+        tool: input.tool,
+        title: output.title,
+      })
+    },
+    "experimental.text.complete": async (input) => {
+      fire("Stop", {
+        sessionID: input.sessionID,
+        messageID: input.messageID,
+        partID: input.partID,
+      })
     },
   }
 }
@@ -421,7 +449,7 @@ info ""
 info "  Hook binary:   $HOOK_BIN"
 info "  Event log:     $HOOK_DATA/hooks.jsonl"
 info ""
-info "  Supported runtimes: Claude Code ✓ (runtime verified) | Codex ⏳ | OpenCode ⏳ | Cursor ⏳"
+info "  Supported runtimes: Claude Code ✓ (runtime verified) | Codex ⏳ | OpenCode ⚠ (plugin-level ✓) | Cursor ⏳"
 info ""
 info "  Test: echo '{\"test\":true}' | $HOOK_BIN --event Test --agent claude-code"
 info "  Watch: tail -f $HOOK_DATA/hooks.jsonl"
