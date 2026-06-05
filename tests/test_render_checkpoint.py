@@ -51,6 +51,19 @@ def test_chart_metadata_passthrough_appears_as_table_fallback(isolated_cwd: Path
     assert "Chart metadata" in html
 
 
+def test_render_emits_no_trailing_whitespace(isolated_cwd: Path):
+    init_artifacts(isolated_cwd)
+
+    html = render_working_report(isolated_cwd).read_text()
+
+    offenders = [
+        number
+        for number, line in enumerate(html.splitlines(), start=1)
+        if line != line.rstrip()
+    ]
+    assert not offenders, f"trailing whitespace on report lines: {offenders}"
+
+
 def test_render_escapes_spec_fields(isolated_cwd: Path):
     init_artifacts(isolated_cwd)
     spec_path = isolated_cwd / ARTIFACTS_DIR / "artifact_spec.yaml"

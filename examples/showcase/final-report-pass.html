@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Q3 sales summary</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #d7dce2;
+      --muted: #56616f;
+      --page: #ffffff;
+      --panel: #f7f9fb;
+      --text: #111827;
+    }
+
+    body {
+      background: var(--page);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      margin: 0;
+      padding: 32px;
+    }
+
+    main {
+      margin: 0 auto;
+      max-width: 960px;
+    }
+
+    h1, h2 {
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 32px;
+    }
+
+    h2 {
+      border-bottom: 1px solid var(--border);
+      font-size: 20px;
+      margin-top: 32px;
+      padding-bottom: 8px;
+    }
+
+    p {
+      margin: 8px 0 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--panel);
+      font-weight: 600;
+    }
+
+    .banner {
+      background: #fff7d6;
+      border: 1px solid #e7c85f;
+      margin-bottom: 20px;
+      padding: 12px 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .gate {
+      border: 1px solid var(--border);
+      border-left-width: 6px;
+      border-radius: 4px;
+      margin: 20px 0 8px;
+      padding: 12px 16px;
+    }
+
+    .gate h2 {
+      border: 0;
+      margin: 0 0 6px;
+      padding: 0;
+    }
+
+    .gate-pass {
+      background: #eef9f0;
+      border-left-color: #2f9e44;
+    }
+
+    .gate-fail {
+      background: #fdecec;
+      border-left-color: #d64545;
+    }
+
+    .gate-verdict {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="banner">Final: all required acceptance criteria passed.</div>
+
+    <h1>Q3 sales summary</h1>
+    <p>Quarterly sales analysis published as a gated RunLens report.</p>
+
+    <section class="gate gate-pass">
+      <h2>Gate summary</h2>
+      <p class="gate-verdict">Gate: PASS
+        &mdash; ready to finalize</p>
+      <p>State: <strong>final</strong> &mdash; All required acceptance criteria passed.</p>
+      <p>Required criteria: 3 passed / 3 total
+        (0 pending, 0 failed).</p>
+      <p class="muted">All required acceptance criteria passed with evidence.</p>
+    </section>
+
+    <h2>Run state</h2>
+    <table>
+      <tbody>
+        <tr>
+          <th scope="row">State</th>
+          <td>final</td>
+        </tr>
+        <tr>
+          <th scope="row">Updated at</th>
+          <td>2026-06-04T17:34:00.882754Z</td>
+        </tr>
+        <tr>
+          <th scope="row">Last report</th>
+          <td>.agent-artifacts/deliverables/final.html</td>
+        </tr>
+        <tr>
+          <th scope="row">Note</th>
+          <td>All required acceptance criteria passed.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Acceptance criteria</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Required</th>
+          <th>Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>define-criteria</td>
+          <td>Replace this placeholder with task-specific acceptance criteria.</td>
+          <td>passed</td>
+          <td>True</td>
+          <td>Placeholder retired for the showcase.</td>
+        </tr>
+        <tr>
+          <td>data-validated</td>
+          <td>Source data validated against the schema.</td>
+          <td>passed</td>
+          <td>True</td>
+          <td>scripts/validate.py: 0 schema errors</td>
+        </tr>
+        <tr>
+          <td>charts-render</td>
+          <td>Revenue chart renders from its Vega-Lite spec.</td>
+          <td>passed</td>
+          <td>True</td>
+          <td>render embedded revenue-by-region.vl.json as inline SVG</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Artifact metadata</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Path</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="4" class="muted">No artifact metadata.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Chart metadata</h2>
+    <section class="chart">
+      <h3>Revenue by region</h3>
+      <div class="chart-figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="marks" width="104" height="345" viewBox="0 0 104 345"><rect width="104" height="345" fill="white"/><g fill="none" stroke-miterlimit="10" transform="translate(39,10)"><g class="mark-group role-frame root" role="graphics-object" aria-roledescription="group mark container"><g transform="translate(0,0)"><path class="background" aria-hidden="true" d="M0.5,0.5h60v300h-60Z" stroke="#ddd"/><g><g class="mark-group role-axis" aria-hidden="true"><g transform="translate(0.5,0.5)"><path class="background" aria-hidden="true" d="M0,0h0v0h0Z" pointer-events="none"/><g><g class="mark-rule role-axis-grid" pointer-events="none"><line transform="translate(0,300)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,273)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,245)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,218)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,191)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,164)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,136)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,109)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,82)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,55)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,27)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/><line transform="translate(0,0)" x2="60" y2="0" stroke="#ddd" stroke-width="1" opacity="1"/></g></g><path class="foreground" aria-hidden="true" d="" pointer-events="none" display="none"/></g></g><g class="mark-group role-axis" role="graphics-symbol" aria-roledescription="axis" aria-label="X-axis titled 'category' for a discrete scale with 3 values: A, B, C"><g transform="translate(0.5,300.5)"><path class="background" aria-hidden="true" d="M0,0h0v0h0Z" pointer-events="none"/><g><g class="mark-rule role-axis-tick" pointer-events="none"><line transform="translate(10,0)" x2="0" y2="5" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(30,0)" x2="0" y2="5" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(50,0)" x2="0" y2="5" stroke="#888" stroke-width="1" opacity="1"/></g><g class="mark-text role-axis-label" pointer-events="none"><text text-anchor="end" transform="translate(9.5,7) rotate(270) translate(0,3)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">A</text><text text-anchor="end" transform="translate(29.5,7) rotate(270) translate(0,3)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">B</text><text text-anchor="end" transform="translate(49.5,7) rotate(270) translate(0,3)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">C</text></g><g class="mark-rule role-axis-domain" pointer-events="none"><line transform="translate(0,0)" x2="60" y2="0" stroke="#888" stroke-width="1" opacity="1"/></g><g class="mark-text role-axis-title" pointer-events="none"><text text-anchor="middle" transform="translate(30,27.2216796875)" font-family="sans-serif" font-size="11px" font-weight="bold" fill="#000" opacity="1">category</text></g></g><path class="foreground" aria-hidden="true" d="" pointer-events="none" display="none"/></g></g><g class="mark-group role-axis" role="graphics-symbol" aria-roledescription="axis" aria-label="Y-axis titled 'amount' for a linear scale with values from 0 to 55"><g transform="translate(0.5,0.5)"><path class="background" aria-hidden="true" d="M0,0h0v0h0Z" pointer-events="none"/><g><g class="mark-rule role-axis-tick" pointer-events="none"><line transform="translate(0,300)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,273)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,245)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,218)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,191)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,164)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,136)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,109)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,82)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,55)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,27)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/><line transform="translate(0,0)" x2="-5" y2="0" stroke="#888" stroke-width="1" opacity="1"/></g><g class="mark-text role-axis-label" pointer-events="none"><text text-anchor="end" transform="translate(-7,303)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">0</text><text text-anchor="end" transform="translate(-7,275.7272727272727)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">5</text><text text-anchor="end" transform="translate(-7,248.45454545454544)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">10</text><text text-anchor="end" transform="translate(-7,221.1818181818182)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">15</text><text text-anchor="end" transform="translate(-7,193.9090909090909)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">20</text><text text-anchor="end" transform="translate(-7,166.63636363636363)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">25</text><text text-anchor="end" transform="translate(-7,139.36363636363637)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">30</text><text text-anchor="end" transform="translate(-7,112.0909090909091)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">35</text><text text-anchor="end" transform="translate(-7,84.81818181818181)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">40</text><text text-anchor="end" transform="translate(-7,57.54545454545453)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">45</text><text text-anchor="end" transform="translate(-7,30.27272727272728)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">50</text><text text-anchor="end" transform="translate(-7,3)" font-family="sans-serif" font-size="10px" fill="#000" opacity="1">55</text></g><g class="mark-rule role-axis-domain" pointer-events="none"><line transform="translate(0,300)" x2="0" y2="-300" stroke="#888" stroke-width="1" opacity="1"/></g><g class="mark-text role-axis-title" pointer-events="none"><text text-anchor="middle" transform="translate(-22.123046875,150) rotate(-90) translate(0,-2)" font-family="sans-serif" font-size="11px" font-weight="bold" fill="#000" opacity="1">amount</text></g></g><path class="foreground" aria-hidden="true" d="" pointer-events="none" display="none"/></g></g><g class="mark-rect role-mark marks" role="graphics-object" aria-roledescription="rect mark container"><path aria-label="category: A; amount: 28" role="graphics-symbol" aria-roledescription="bar" d="M1,147.27272727272728h18v152.72727272727272h-18Z" fill="#4c78a8"/><path aria-label="category: B; amount: 55" role="graphics-symbol" aria-roledescription="bar" d="M21,0h18v300h-18Z" fill="#4c78a8"/><path aria-label="category: C; amount: 43" role="graphics-symbol" aria-roledescription="bar" d="M41,65.45454545454544h18v234.54545454545456h-18Z" fill="#4c78a8"/></g></g><path class="foreground" aria-hidden="true" d="" display="none"/></g></g></g></svg></div>
+      <p class="muted">vega-lite &middot; ready &middot; .agent-artifacts/working/charts/bar.vl.json</p>
+    </section>
+    <section class="chart">
+      <h3>Draft chart (invalid spec)</h3>
+      <p class="muted">Chart unavailable: Vega-Lite render failed: Vega-Lite to SVG conversion failed:</p>
+      <table>
+        <thead>
+          <tr>
+<th>category</th><th>amount</th>          </tr>
+        </thead>
+        <tbody>
+          <tr>
+<td>A</td><td>28</td>          </tr>
+          <tr>
+<td>B</td><td>55</td>          </tr>
+        </tbody>
+      </table>
+      <p class="muted">Spec: <a href=".agent-artifacts/working/charts/invalid.vl.json">.agent-artifacts/working/charts/invalid.vl.json</a></p>
+      <p class="muted">vega-lite &middot; draft &middot; .agent-artifacts/working/charts/invalid.vl.json</p>
+    </section>
+  </main>
+</body>
+</html>

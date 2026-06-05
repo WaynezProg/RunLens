@@ -75,14 +75,53 @@
     .muted {
       color: var(--muted);
     }
+
+    .gate {
+      border: 1px solid var(--border);
+      border-left-width: 6px;
+      border-radius: 4px;
+      margin: 20px 0 8px;
+      padding: 12px 16px;
+    }
+
+    .gate h2 {
+      border: 0;
+      margin: 0 0 6px;
+      padding: 0;
+    }
+
+    .gate-pass {
+      background: #eef9f0;
+      border-left-color: #2f9e44;
+    }
+
+    .gate-fail {
+      background: #fdecec;
+      border-left-color: #d64545;
+    }
+
+    .gate-verdict {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
   </style>
 </head>
 <body>
   <main>
 
-
     <h1>RunLens MVP implementation</h1>
     <p>Python CLI MVP for filesystem-first agent artifact reports.</p>
+
+    <section class="gate gate-pass">
+      <h2>Gate summary</h2>
+      <p class="gate-verdict">Gate: PASS
+        &mdash; ready to finalize</p>
+      <p>State: <strong>final</strong> &mdash; All required acceptance criteria passed.</p>
+      <p>Required criteria: 3 passed / 3 total
+        (0 pending, 0 failed).</p>
+      <p class="muted">All required acceptance criteria passed with evidence.</p>
+    </section>
 
     <h2>Run state</h2>
     <table>
@@ -118,7 +157,6 @@
         </tr>
       </thead>
       <tbody>
-
         <tr>
           <td>pytest</td>
           <td>Full pytest suite passes.</td>
@@ -126,7 +164,6 @@
           <td>True</td>
           <td>uv run pytest -q: 43 passed</td>
         </tr>
-
         <tr>
           <td>cli-help</td>
           <td>CLI exposes init, update, render, checkpoint, and finalize.</td>
@@ -134,7 +171,6 @@
           <td>True</td>
           <td>uv run runlens --help lists all MVP commands</td>
         </tr>
-
         <tr>
           <td>final-gate</td>
           <td>finalize refuses final.html unless required criteria pass with evidence.</td>
@@ -142,7 +178,6 @@
           <td>True</td>
           <td>tests/test_finalize.py covers failed, blocked, missing/invalid spec, no-checkpoint, evidence, and success paths</td>
         </tr>
-
       </tbody>
     </table>
 
@@ -157,35 +192,17 @@
         </tr>
       </thead>
       <tbody>
-
         <tr>
           <td>Working report</td>
           <td>html</td>
           <td>ready</td>
           <td>.agent-artifacts/working/report.html</td>
         </tr>
-
       </tbody>
     </table>
 
     <h2>Chart metadata</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Type</th>
-          <th>Status</th>
-          <th>Path</th>
-        </tr>
-      </thead>
-      <tbody>
-
-        <tr>
-          <td colspan="4" class="muted">No chart metadata.</td>
-        </tr>
-
-      </tbody>
-    </table>
+    <p class="muted">No chart metadata.</p>
   </main>
 </body>
 </html>

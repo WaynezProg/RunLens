@@ -13,6 +13,8 @@ def template_env() -> Environment:
     return Environment(
         loader=PackageLoader("runlens", "templates"),
         autoescape=True,
+        trim_blocks=True,
+        lstrip_blocks=True,
     )
 
 
