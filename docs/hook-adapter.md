@@ -14,6 +14,16 @@ stops — into a unified event log. This enables:
 - Correlation of agent actions with artifact state changes
 - Future `runlens ingest` pipeline (event → artifact spec updates)
 
+### Stop → HTML delivery
+
+On a `Stop` event, the hook does more than log: if the event's working
+directory contains `.agent-artifacts/`, it refreshes the working HTML report,
+and — only when every required acceptance criterion already passes with
+evidence — writes `deliverables/final.html`. The finalize gate is checked
+*before* finalizing, so an incomplete session never flips the run to `failed`.
+A synthetic `report` event records what was produced. Projects without
+`.agent-artifacts/` are untouched.
+
 ## Architecture
 
 ```
@@ -71,9 +81,9 @@ objects and arrays).
 | Agent     | Installer | Direct-Call Verified | Runtime Verified |
 |-----------|-----------|----------------------|------------------|
 | Claude Code | ✓       | ✓                    | ✓                |
-| Codex       | ✓       | ✓                    | ✓                |
 | OpenCode    | ✓       | ✓                    | ✓                |
-| Cursor      | ✓       | ✓                    | ⏳ pending IDE Agent |
+| Codex       | ✓       | ✓                    | ⚠ one-time `/hooks trust` required |
+| Cursor      | ✓       | ✓                    | ⚠ IDE only — `cursor-agent` CLI does not fire `stop` |
 
 "Direct-call verified" means `runlens-hook --event X --agent Y` writes correct
 events to `hooks.jsonl` for all four agents.
