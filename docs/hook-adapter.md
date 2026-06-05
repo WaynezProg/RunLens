@@ -72,13 +72,19 @@ objects and arrays).
 |-----------|-----------|----------------------|------------------|
 | Claude Code | ✓       | ✓                    | ✓                |
 | Codex       | ✓       | ✓                    | ⏳ pending `/hooks trust` |
-| OpenCode    | ✓       | ✓                    | ⏳ pending serve/desktop |
+| OpenCode    | ✓       | ✓                    | ⚠ plugin-level ✓ / live session ⏳ |
 | Cursor      | ✓       | ✓                    | ⏳ pending IDE Agent |
 
 "Direct-call verified" means `runlens-hook --event X --agent Y` writes correct
 events to `hooks.jsonl` for all four agents.
 "Runtime verified" means the agent's native hook/plugin system actually fires
 events during a real session.
+For OpenCode, "plugin-level verified" means the plugin factory and registered
+hook callbacks are wired to `runlens-hook` correctly and write events when
+the documented hooks fire — proven by exercising the hooks directly through
+Bun. The remaining step is a live `opencode serve` / desktop session, which
+requires a configured model provider that is not available in this
+verification environment.
 
 ### Claude Code ✓ (runtime verified)
 
@@ -116,20 +122,41 @@ For testing only: `codex exec --dangerously-bypass-hook-trust ...`
 interactive mode. There is no CLI flag to persist trust without the interactive
 workflow. Sandbox mode may block hook execution.
 
-### OpenCode ⏳ (installed, pending serve/desktop verification)
+### OpenCode ⚠ (installed; plugin-level verified; live-session pending)
 
-| Event            | Trigger          |
-|------------------|------------------|
-| `session.created`| Session starts   |
-| `agent.finished` | Agent completes  |
+| RunLens Event  | OpenCode Plugin Hook             | Trigger                                   |
+|----------------|----------------------------------|-------------------------------------------|
+| `SessionStart` | `chat.message`                   | Session receives its first user message   |
+| `PostToolUse`  | `tool.execute.after`             | Any tool finishes in the session           |
+| `Stop`         | `experimental.text.complete`     | Final text part of the assistant turn      |
 
 The installer creates `runlens-hooks.ts` at
 `~/.config/opencode/plugins/` **and** registers it in
 `~/.config/opencode/opencode.json` → `"plugin"` array.
 If the config file doesn't exist, the installer outputs manual instructions.
 
-**Limitation**: `run` mode does not fire plugin hooks — only `serve` mode or
-the desktop app trigger `session.created` and `agent.finished` events.
+The OpenCode 1.15+ plugin API does not expose `session.created` or
+`agent.finished`. Earlier revisions of this plugin subscribed to those
+events and silently never fired — that is why hooks.jsonl previously
+contained zero `agent: "opencode"` entries. The current plugin subscribes
+to the three hooks listed above, all of which appear in the documented
+`Plugin` type in `@opencode-ai/plugin` (verified against v1.3.13 bundled
+with the CLI and v1.16.0 latest).
+
+**Limitation**: `experimental.text.complete` is in OpenCode's experimental
+namespace and may be renamed in a future release. The plugin ignores
+payload fields it does not need and is best-effort: a failed
+`runlens-hook` spawn never crashes the agent.
+
+**Verification (plugin-level)**: loading the deployed `runlens-hooks.ts`
+via Bun, invoking `chat.message`, `tool.execute.after`, and
+`experimental.text.complete` with representative inputs, and tailing
+`hooks.jsonl` confirmed that all three events land as
+`agent: "opencode"` with the expected `raw` payload.
+
+**Verification (live session, pending)**: a real `opencode serve` or
+desktop session is the next step. It requires a configured model
+provider, which was not available in the verification environment.
 
 ### Cursor ⏳ (installed, pending IDE Agent verification)
 
