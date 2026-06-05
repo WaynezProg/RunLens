@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# runlens-hook — thin wrapper invoked by agent lifecycle hooks.
+# Routes event data into ~/.local/share/runlens/hooks.jsonl
+set -euo pipefail
+
+HOOK_VERSION="0.1.0"
+
+# Resolve the runlens CLI entrypoint.
+# Strategy: prefer `uv run` (project-local venv), fall back to direct python module.
+resolve_runlens() {
+    # Find RunLens repo root (walk up from hook.py location or CWD)
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    # If installed as symlink to ~/.local/bin, resolve real path
+    if [ -L "$0" ]; then
+        script_dir="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+    fi
+
+    # Try to find the RunLens project root near the script
+    local repo_root=""
+    for candidate in "$script_dir" "$script_dir/.." "$HOME/claw_prog/projects/04-kurisu-github/RunLens"; do
+        if [ -f "$candidate/pyproject.toml" ]; then
+            repo_root="$candidate"
+            break
+        fi
+    done
+
+    if [ -n "$repo_root" ] && command -v uv &>/dev/null; then
+        echo "uv run --project $repo_root runlens hook"
+        return 0
+    fi
+
+    # Fallback: try runlens on PATH
+    if command -v runlens &>/dev/null; then
+        echo "runlens hook"
+        return 0
+    fi
+
+    echo "ERROR: runlens-hook cannot find runlens CLI." >&2
+    echo "Install uv (https://docs.astral.sh/uv/) or add runlens to PATH." >&2
+    return 1
+}
+
+RUNLENS_CMD="$(resolve_runlens)"
+
+# Read stdin into a variable (may be empty)
+stdin_data="$(cat)"
+
+exec $RUNLENS_CMD "$@" <<< "$stdin_data"

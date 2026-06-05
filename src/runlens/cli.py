@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import TypeVar
@@ -15,6 +16,7 @@ from runlens.criteria import (
     reset_criterion,
     set_criterion_status,
 )
+from runlens.hook import normalize_and_append
 from runlens.models import ArtifactSpec, RunStatus
 from runlens.renderer import (
     checkpoint_report_path,
@@ -334,3 +336,14 @@ def checkpoint_command(
 
     output_path = _run_initialized_command(create_checkpoint)
     typer.echo(output_path)
+
+
+@app.command("hook")
+def hook_command(
+    event: str = typer.Option(..., "--event", help="Event name (e.g. SessionStart)"),
+    agent: str = typer.Option(..., "--agent", help="Agent runtime (claude-code|codex|opencode|cursor)"),
+) -> None:
+    """Normalize a lifecycle event and append to hooks.jsonl."""
+    stdin_data = sys.stdin.read()
+    normalized = normalize_and_append(event=event, agent=agent, stdin_data=stdin_data)
+    typer.echo(json.dumps(normalized, ensure_ascii=True))
