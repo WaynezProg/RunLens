@@ -81,6 +81,20 @@ Mark blocked only with a real reason:
 uv run runlens finalize --blocked-reason "Missing production API access"
 ```
 
+## Proactive delivery (how HTML gets produced)
+
+The RunLens Stop hook auto-produces HTML when a session ends — but only from
+what you recorded. To make the deliverable worth reading:
+
+- Run `uv run runlens init` at the **start** of deliverable work so
+  `.agent-artifacts/` exists. With no spec, the Stop hook has nothing to render.
+- Record criteria and progress as you go (`criteria add` / `criteria pass`
+  with real evidence, `update --note`). The Stop hook re-renders the working
+  report and, once every required criterion passes with evidence, writes
+  `deliverables/final.html` for you.
+- You do **not** need to run `render` manually — the Stop hook does it. Your job
+  is to keep `artifact_spec.yaml` truthful.
+
 ## Do Not
 
 - Do not create checkpoints from `finalize`.
