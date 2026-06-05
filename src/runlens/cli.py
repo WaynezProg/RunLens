@@ -16,6 +16,7 @@ from runlens.criteria import (
     reset_criterion,
     set_criterion_status,
 )
+from runlens.autoreport import emit_report_on_stop
 from runlens.hook import normalize_and_append
 from runlens.models import ArtifactSpec, RunStatus
 from runlens.renderer import (
@@ -343,6 +344,23 @@ def hook_command(
     event: str = typer.Option(..., "--event", help="Event name (e.g. SessionStart)"),
     agent: str = typer.Option(..., "--agent", help="Agent runtime (claude-code|codex|opencode|cursor)"),
 ) -> None:
-    """Normalize a lifecycle event and append to hooks.jsonl."""
+    """Normalize a lifecycle event and append to hooks.jsonl.
+
+    On `Stop`, additionally refresh the working report and — when the gate
+    already passes — write the final deliverable, logging a `report` event.
+    Best-effort: never fails the hook.
+    """
     stdin_data = sys.stdin.read()
     normalize_and_append(event=event, agent=agent, stdin_data=stdin_data)
+
+    if event == "Stop":
+        try:
+            outcome = emit_report_on_stop(Path.cwd())
+        except Exception:  # noqa: BLE001 - hook must never crash the agent
+            return
+        if outcome.rendered or outcome.error:
+            normalize_and_append(
+                event="report",
+                agent=agent,
+                stdin_data=json.dumps(outcome.as_event_payload()),
+            )

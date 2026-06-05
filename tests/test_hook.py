@@ -130,3 +130,69 @@ def test_hook_opencode_event_names(isolated_cwd: Path, monkeypatch, tmp_path: Pa
     assert events[0]["raw"]["sessionID"] == "s-1"
     assert events[1]["raw"]["tool"] == "bash"
     assert events[2]["raw"]["partID"] == "p-1"
+
+
+def test_hook_stop_renders_and_logs_report_event(
+    isolated_cwd: Path, monkeypatch, tmp_path: Path
+):
+    """Stop on a gate-passing project renders + finalizes and logs a `report`
+    event alongside the lifecycle `Stop` event."""
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+    runner = CliRunner()
+    runner.invoke(cli_app, ["init"])
+    # Pass the seeded required placeholder so the gate is satisfied.
+    runner.invoke(
+        cli_app,
+        ["criteria", "pass", "--id", "define-criteria", "--evidence", "done"],
+    )
+
+    result = runner.invoke(
+        cli_app, ["hook", "--event", "Stop", "--agent", "claude-code"], input="{}"
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output == ""
+
+    from runlens.store import ARTIFACTS_DIR
+    assert (isolated_cwd / ARTIFACTS_DIR / "deliverables" / "final.html").exists()
+
+    jsonl = tmp_path / "runlens" / "hooks.jsonl"
+    events = [json.loads(line) for line in jsonl.read_text().strip().splitlines()]
+    names = [e["event"] for e in events]
+    assert "Stop" in names
+    assert "report" in names
+    report = next(e for e in events if e["event"] == "report")
+    assert report["raw"]["finalized"] is True
+    assert report["raw"]["final_report"].endswith("deliverables/final.html")
+
+
+def test_hook_stop_without_artifacts_logs_only_lifecycle(
+    isolated_cwd: Path, monkeypatch, tmp_path: Path
+):
+    """Stop in a repo that never used RunLens logs only the lifecycle event."""
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+    runner = CliRunner()
+    result = runner.invoke(
+        cli_app, ["hook", "--event", "Stop", "--agent", "cursor"], input="{}"
+    )
+    assert result.exit_code == 0, result.output
+
+    jsonl = tmp_path / "runlens" / "hooks.jsonl"
+    events = [json.loads(line) for line in jsonl.read_text().strip().splitlines()]
+    assert [e["event"] for e in events] == ["Stop"]
+
+
+def test_hook_non_stop_event_does_not_render(
+    isolated_cwd: Path, monkeypatch, tmp_path: Path
+):
+    """Only Stop triggers rendering; SessionStart must not write a report."""
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+    runner = CliRunner()
+    runner.invoke(cli_app, ["init"])
+
+    result = runner.invoke(
+        cli_app, ["hook", "--event", "SessionStart", "--agent", "claude-code"], input="{}"
+    )
+    assert result.exit_code == 0, result.output
+
+    from runlens.store import ARTIFACTS_DIR
+    assert not (isolated_cwd / ARTIFACTS_DIR / "working" / "report.html").exists()
