@@ -58,9 +58,13 @@ if [ -f "$HOOK_BIN" ]; then
     fi
 fi
 
-cp "$HOOK_BIN_SRC" "$HOOK_BIN"
+if [ -f "$HOOK_BIN" ] && cmp -s "$HOOK_BIN_SRC" "$HOOK_BIN"; then
+    info "Hook binary already current: $HOOK_BIN"
+else
+    cp "$HOOK_BIN_SRC" "$HOOK_BIN"
+    info "Installed hook binary: $HOOK_BIN"
+fi
 chmod +x "$HOOK_BIN"
-info "Installed hook binary: $HOOK_BIN"
 
 # ── Step 3: Detect RunLens project root ────────────────────────────────────
 # The hook binary needs to find `runlens`. Store the resolved project root
@@ -75,6 +79,21 @@ backup_if_exists() {
         cp "$file" "$backup"
         info "Backed up: $backup"
     fi
+}
+
+copy_if_changed() {
+    local source="$1"
+    local target="$2"
+    local label="$3"
+
+    if [ -f "$target" ] && cmp -s "$source" "$target"; then
+        info "$label already current: $target"
+        return 0
+    fi
+
+    backup_if_exists "$target"
+    cp "$source" "$target"
+    info "$label updated: $target"
 }
 
 safe_merge_json() {
@@ -196,9 +215,10 @@ configure_codex() {
 
     info "Configuring Codex hooks..."
 
-    backup_if_exists "$codex_hooks"
+    local patch
+    patch="$(mktemp)"
 
-    cat > "$codex_hooks" << 'JSON'
+    cat > "$patch" << 'JSON'
 {
   "hooks": {
     "SessionStart": [
@@ -220,7 +240,7 @@ configure_codex() {
           {
             "type": "command",
             "command": "~/.local/bin/runlens-hook --event Stop --agent codex",
-            "async": true
+            "async": false
           }
         ]
       }
@@ -229,7 +249,8 @@ configure_codex() {
 }
 JSON
 
-    info "  Codex hooks created at: $codex_hooks"
+    copy_if_changed "$patch" "$codex_hooks" "Codex hooks"
+    rm -f "$patch"
     echo ""
     warn "  Codex requires manual hook trust. In Codex, run:"
     echo ""
@@ -449,7 +470,7 @@ info ""
 info "  Hook binary:   $HOOK_BIN"
 info "  Event log:     $HOOK_DATA/hooks.jsonl"
 info ""
-info "  Supported runtimes: Claude Code ✓ (runtime verified) | Codex ⏳ | OpenCode ⚠ (plugin-level ✓) | Cursor ⏳"
+info "  Supported runtimes: Claude Code ✓ (runtime verified) | Codex ✓ (runtime verified) | OpenCode ⚠ (plugin-level ✓) | Cursor ⏳"
 info ""
 info "  Test: echo '{\"test\":true}' | $HOOK_BIN --event Test --agent claude-code"
 info "  Watch: tail -f $HOOK_DATA/hooks.jsonl"

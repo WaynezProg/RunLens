@@ -345,5 +345,4 @@ def hook_command(
 ) -> None:
     """Normalize a lifecycle event and append to hooks.jsonl."""
     stdin_data = sys.stdin.read()
-    normalized = normalize_and_append(event=event, agent=agent, stdin_data=stdin_data)
-    typer.echo(json.dumps(normalized, ensure_ascii=True))
+    normalize_and_append(event=event, agent=agent, stdin_data=stdin_data)

@@ -71,7 +71,7 @@ objects and arrays).
 | Agent     | Installer | Direct-Call Verified | Runtime Verified |
 |-----------|-----------|----------------------|------------------|
 | Claude Code | ✓       | ✓                    | ✓                |
-| Codex       | ✓       | ✓                    | ⏳ pending `/hooks trust` |
+| Codex       | ✓       | ✓                    | ✓                |
 | OpenCode    | ✓       | ✓                    | ✓                |
 | Cursor      | ✓       | ✓                    | ⏳ pending IDE Agent |
 
@@ -92,18 +92,18 @@ Hooks are merged into `~/.claude/settings.json`. The installer backs up the
 existing file and uses deep JSON merge. If top-level key types conflict (e.g.
 `hooks` is a string instead of an object), the installer aborts.
 
-### Codex ⏳ (installed, pending /hooks trust)
+### Codex ✓ (runtime verified)
 
 | Event         | Trigger                     |
 |---------------|-----------------------------|
 | `SessionStart`| Session starts              |
 | `Stop`        | Session ends                |
 
-The installer creates `~/.codex/hooks.json`. Codex detects the hooks at
-startup (logs show `hook: SessionStart`) but **will not execute commands until
-trusted**.
+The installer creates `~/.codex/hooks.json`. Codex trusts exact hook
+definitions by hash, so the installer keeps the wrapper command and hook JSON
+stable and avoids rewriting unchanged files.
 
-**Manual step required**: In Codex interactive mode, run:
+If Codex reports changed hooks, run this in Codex interactive mode:
 
 ```
 /hooks review
@@ -112,9 +112,11 @@ trusted**.
 
 For testing only: `codex exec --dangerously-bypass-hook-trust ...`
 
-**Limitation**: Codex's hook trust is per-session and must be done in
-interactive mode. There is no CLI flag to persist trust without the interactive
-workflow. Sandbox mode may block hook execution.
+Verified on Codex CLI 0.134.0: starting the TUI without bypassing hook trust,
+running `pwd`, and ending the turn appended both `SessionStart` and `Stop` to
+`~/.local/share/runlens/hooks.jsonl` without hook review or invalid hook output.
+There is still no shell command equivalent to `/hooks trust`; trust review is a
+TUI slash-command workflow.
 
 ### OpenCode ✓ (runtime verified)
 

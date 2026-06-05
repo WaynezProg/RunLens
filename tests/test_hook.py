@@ -18,6 +18,7 @@ def test_hook_writes_normalized_event(isolated_cwd: Path, monkeypatch, tmp_path:
         input=json.dumps(payload),
     )
     assert cli_result.exit_code == 0, f"stdout={cli_result.output}\nexception={cli_result.exception}"
+    assert cli_result.output == ""
 
     jsonl_file = tmp_path / "runlens" / "hooks.jsonl"
     assert jsonl_file.exists(), f"hooks.jsonl not found; tmp_path={list(tmp_path.iterdir())}"
@@ -50,6 +51,7 @@ def test_hook_sanitizes_secrets(isolated_cwd: Path, monkeypatch, tmp_path: Path)
         input=json.dumps(payload),
     )
     assert cli_result.exit_code == 0, cli_result.output
+    assert cli_result.output == ""
 
     jsonl_file = tmp_path / "runlens" / "hooks.jsonl"
     event = json.loads(jsonl_file.read_text().strip().splitlines()[0])
