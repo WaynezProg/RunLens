@@ -82,7 +82,7 @@ objects and arrays).
 |-----------|-----------|----------------------|------------------|
 | Claude Code | ✓       | ✓                    | ✓                |
 | OpenCode    | ✓       | ✓                    | ✓                |
-| Codex       | ✓       | ✓                    | ⚠ one-time `/hooks trust` required |
+| Codex       | ✓       | ✓                    | ✓ (after one-time `/hooks trust`) |
 | Cursor      | ✓       | ✓                    | ⚠ IDE only — `cursor-agent` CLI does not fire `stop` |
 
 "Direct-call verified" means `runlens-hook --event X --agent Y` writes correct
@@ -161,7 +161,7 @@ namespace and may be renamed in a future release. The plugin ignores
 payload fields it does not need and is best-effort: a failed
 `runlens-hook` spawn never crashes the agent.
 
-### Cursor ⏳ (installed, pending IDE Agent verification)
+### Cursor ⚠ (IDE only — CLI does not fire `stop`)
 
 | Event  | Trigger                  |
 |--------|--------------------------|
