@@ -150,10 +150,12 @@ configure_claude_code() {
 
     local patch
     patch="$(mktemp)"
-    # No "async" field here: Cursor reads ~/.claude/settings.json for Claude-compat
-    # and its hook schema has no `async` key — an `async` field makes Cursor reject
-    # the whole config and disable ALL Cursor hooks. Keep these hooks synchronous
-    # (the runlens-hook wrapper is fast and fail-safe, so blocking is cheap).
+    # Cursor reads ~/.claude/settings.json for Claude-compat and calls
+    # `matcher.split(...)` on EVERY hook block — a block without a `matcher`
+    # throws "Cannot read properties of undefined (reading 'split')" and Cursor
+    # then disables ALL its hooks. So every block here MUST carry a string
+    # `matcher` (PostToolUse included). We also omit `async` (not in Cursor's
+    # schema); the runlens-hook wrapper is fast + fail-safe, so synchronous is fine.
     cat > "$patch" << 'JSON'
 {
   "hooks": {
@@ -170,6 +172,7 @@ configure_claude_code() {
     ],
     "PostToolUse": [
       {
+        "matcher": ".",
         "hooks": [
           {
             "type": "command",

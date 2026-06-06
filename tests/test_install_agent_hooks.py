@@ -38,10 +38,11 @@ def test_installer_keeps_codex_hook_definition_stable(tmp_path: Path):
     assert not list((home / ".codex").glob("hooks.json.bak-runlens-*"))
 
 
-def test_installer_claude_hooks_have_no_async(tmp_path: Path):
-    """Cursor reads ~/.claude/settings.json for Claude-compat and its hook schema
-    has no `async` field; an `async` key makes Cursor reject the whole config and
-    disable hooks. The installer must not write `async` into the Claude hooks."""
+def test_installer_claude_hooks_are_cursor_compatible(tmp_path: Path):
+    """Cursor reads ~/.claude/settings.json for Claude-compat and calls
+    `matcher.split(...)` on every hook block, so each block MUST have a string
+    `matcher`; it also has no `async` field. The installer must emit a `matcher`
+    on every Claude hook block and never write `async`."""
     repo = Path(__file__).resolve().parents[1]
     home = tmp_path / "home"
     (home / ".claude").mkdir(parents=True)
@@ -76,6 +77,18 @@ def test_installer_claude_hooks_have_no_async(tmp_path: Path):
         if "async" in entry
     ]
     assert async_entries == [], f"Claude hooks must not contain `async`: {async_entries}"
+
+    # Every hook block must carry a string `matcher` (Cursor calls .split() on it).
+    blocks_without_matcher = [
+        (event, block)
+        for event, blocks in hooks.items()
+        for block in blocks
+        if not isinstance(block.get("matcher"), str)
+    ]
+    assert blocks_without_matcher == [], (
+        f"every Claude hook block needs a string matcher: {blocks_without_matcher}"
+    )
+
     # The RunLens Stop hook is still present.
     stop_cmds = [e["command"] for e in hooks["Stop"][0]["hooks"]]
     assert any("runlens-hook --event Stop --agent claude-code" in c for c in stop_cmds)
