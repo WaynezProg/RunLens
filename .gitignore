@@ -4,3 +4,6 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
+.DS_Store
+# Installer-generated, machine-specific (absolute paths) — runtime, not source.
+/.cursor/hooks.json
