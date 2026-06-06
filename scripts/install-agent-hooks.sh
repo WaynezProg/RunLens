@@ -150,6 +150,10 @@ configure_claude_code() {
 
     local patch
     patch="$(mktemp)"
+    # No "async" field here: Cursor reads ~/.claude/settings.json for Claude-compat
+    # and its hook schema has no `async` key — an `async` field makes Cursor reject
+    # the whole config and disable ALL Cursor hooks. Keep these hooks synchronous
+    # (the runlens-hook wrapper is fast and fail-safe, so blocking is cheap).
     cat > "$patch" << 'JSON'
 {
   "hooks": {
@@ -159,8 +163,7 @@ configure_claude_code() {
         "hooks": [
           {
             "type": "command",
-            "command": "~/.local/bin/runlens-hook --event SessionStart --agent claude-code",
-            "async": false
+            "command": "~/.local/bin/runlens-hook --event SessionStart --agent claude-code"
           }
         ]
       }
@@ -170,8 +173,7 @@ configure_claude_code() {
         "hooks": [
           {
             "type": "command",
-            "command": "rtk hook claude 2>/dev/null; ~/.local/bin/runlens-hook --event PostToolUse --agent claude-code",
-            "async": true
+            "command": "rtk hook claude 2>/dev/null; ~/.local/bin/runlens-hook --event PostToolUse --agent claude-code"
           }
         ]
       }
@@ -182,8 +184,7 @@ configure_claude_code() {
         "hooks": [
           {
             "type": "command",
-            "command": "~/.local/bin/runlens-hook --event Stop --agent claude-code",
-            "async": true
+            "command": "~/.local/bin/runlens-hook --event Stop --agent claude-code"
           }
         ]
       }

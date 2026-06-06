@@ -36,3 +36,46 @@ def test_installer_keeps_codex_hook_definition_stable(tmp_path: Path):
 
     assert codex_hooks.read_text(encoding="utf-8") == first_content
     assert not list((home / ".codex").glob("hooks.json.bak-runlens-*"))
+
+
+def test_installer_claude_hooks_have_no_async(tmp_path: Path):
+    """Cursor reads ~/.claude/settings.json for Claude-compat and its hook schema
+    has no `async` field; an `async` key makes Cursor reject the whole config and
+    disable hooks. The installer must not write `async` into the Claude hooks."""
+    repo = Path(__file__).resolve().parents[1]
+    home = tmp_path / "home"
+    (home / ".claude").mkdir(parents=True)
+    (home / ".claude" / "settings.json").write_text("{}\n", encoding="utf-8")
+    (home / ".codex").mkdir(parents=True)
+    (home / ".codex" / "config.toml").write_text("[hooks.state]\n", encoding="utf-8")
+    (home / ".config" / "opencode").mkdir(parents=True)
+    (home / ".config" / "opencode" / "opencode.json").write_text(
+        '{"plugin":[]}\n', encoding="utf-8"
+    )
+    (home / ".cursor").mkdir(parents=True)
+
+    env = os.environ.copy()
+    env["HOME"] = str(home)
+
+    result = subprocess.run(
+        ["bash", "scripts/install-agent-hooks.sh"],
+        cwd=repo,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+    assert result.returncode == 0, result.stderr + result.stdout
+
+    settings = json.loads((home / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    hooks = settings["hooks"]
+    async_entries = [
+        entry
+        for blocks in hooks.values()
+        for block in blocks
+        for entry in block.get("hooks", [])
+        if "async" in entry
+    ]
+    assert async_entries == [], f"Claude hooks must not contain `async`: {async_entries}"
+    # The RunLens Stop hook is still present.
+    stop_cmds = [e["command"] for e in hooks["Stop"][0]["hooks"]]
+    assert any("runlens-hook --event Stop --agent claude-code" in c for c in stop_cmds)
