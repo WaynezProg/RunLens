@@ -14,15 +14,28 @@ stops — into a unified event log. This enables:
 - Correlation of agent actions with artifact state changes
 - Future `runlens ingest` pipeline (event → artifact spec updates)
 
-### Stop → HTML delivery
+### Stop → HTML delivery (Tier 2 — best-effort bonus)
 
-On a `Stop` event, the hook does more than log: if the event's working
+On a `Stop` event, the hook may do more than log: if the event's working
 directory contains `.agent-artifacts/`, it refreshes the working HTML report,
 and — only when every required acceptance criterion already passes with
 evidence — writes `deliverables/final.html`. The finalize gate is checked
 *before* finalizing, so an incomplete session never flips the run to `failed`.
 A synthetic `report` event records what was produced. Projects without
 `.agent-artifacts/` are untouched.
+
+**This is not the primary delivery contract.** `Stop` semantics differ per
+runtime (OpenCode fires per assistant turn; Cursor CLI does not fire `stop`).
+Agents must still run `runlens render` at milestones and `runlens finalize`
+when done. See `docs/superpowers/specs/2026-06-06-html-delivery-trigger-strategy-design.md`.
+
+### Tier 3 — `runlens watch` (optional foreground autorender)
+
+`runlens watch` polls `.agent-artifacts/artifact_spec.yaml` and
+`run_state.json` and debounce-renders `working/report.html`. It never
+auto-finalizes. Useful when Stop hooks are unreliable (Cursor CLI, ambiguous
+OpenCode per-turn Stop). See
+`docs/superpowers/specs/2026-06-06-html-delivery-trigger-strategy-design.md`.
 
 ## Architecture
 

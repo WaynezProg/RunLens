@@ -57,7 +57,7 @@ Record meaningful progress:
 uv run runlens update --state working --note "Implemented parser"
 ```
 
-Refresh the working report:
+Refresh the working report (required at milestones — see **Render cadence**):
 
 ```bash
 uv run runlens render
@@ -81,35 +81,64 @@ Mark blocked only with a real reason:
 uv run runlens finalize --blocked-reason "Missing production API access"
 ```
 
-## Proactive delivery (how HTML gets produced)
+## Render cadence (when HTML is produced)
 
-The RunLens Stop hook auto-produces HTML when a session ends — but only from
-what you recorded. To make the deliverable worth reading:
+Three tiers — **you own Tier 1**; do not assume hooks will render for you.
 
-- Run `uv run runlens init` at the **start** of deliverable work so
-  `.agent-artifacts/` exists. With no spec, the Stop hook has nothing to render.
-- Record criteria and progress as you go (`criteria add` / `criteria pass`
-  with real evidence, `update --note`). The Stop hook re-renders the working
-  report and, once every required criterion passes with evidence, writes
-  `deliverables/final.html` for you.
-- You do **not** need to run `render` manually — the Stop hook does it. Your job
-  is to keep `artifact_spec.yaml` truthful.
+### Tier 1 — Explicit CLI (canonical)
 
-## Do Not
+Run `uv run runlens render` after:
 
-- Do not create checkpoints from `finalize`.
-- Do not write `.agent-artifacts/deliverables/final.html` manually.
-- Do not put acceptance criteria in `run_state.json`.
-- Do not store large HTML bodies, datasets, or chart data in `artifact_spec.yaml`.
-- Do not use `--blocked-reason ""`; empty blocked reasons are CLI usage errors.
+- `criteria pass` / `criteria fail` / `criteria reset`
+- `update --note` when the note is user-visible progress
+- Before `finalize` (always)
+
+Run `uv run runlens finalize` only when every required criterion is `passed`
+with evidence. Final HTML is never implied by a successful `render`.
+
+### Tier 2 — Stop hook (best-effort bonus)
+
+If lifecycle hooks are installed, a `Stop` event may refresh
+`working/report.html` and — when the gate already passes — write
+`deliverables/final.html`. **Do not rely on this:**
+
+- OpenCode `Stop` fires per assistant turn, not session end.
+- Cursor `cursor-agent` CLI does not fire `stop`.
+- Codex needs a one-time `/hooks trust` in the TUI.
+
+Hooks never populate criteria for you. Empty or stale spec → empty shell HTML.
+
+### Tier 3 — Artifact watch (optional automation)
+
+In a separate terminal, run:
+
+```bash
+uv run runlens watch
+```
+
+This polls `artifact_spec.yaml` and `run_state.json` and debounce-renders
+`working/report.html` (~2s after the last change). It **never** writes
+`final.html`. Tier 1 explicit `render` / `finalize` still apply at closeout.
 
 ## Closeout
 
-Before reporting completion, run:
+Before reporting completion:
 
 ```bash
+uv run runlens criteria list
+uv run runlens render
+uv run runlens finalize
 uv run pytest -q
 uv run runlens --help
 git diff --check
 git status --short --branch
 ```
+
+## Do Not
+
+- Do not skip `render` and assume the Stop hook will refresh the report.
+- Do not create checkpoints from `finalize`.
+- Do not write `.agent-artifacts/deliverables/final.html` manually.
+- Do not put acceptance criteria in `run_state.json`.
+- Do not store large HTML bodies, datasets, or chart data in `artifact_spec.yaml`.
+- Do not use `--blocked-reason ""`; empty blocked reasons are CLI usage errors.

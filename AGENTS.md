@@ -14,7 +14,7 @@ or chart inference system unless the user explicitly changes scope.
 - `src/runlens/models.py`: Pydantic schemas for run state, artifact spec, criteria, and metadata.
 - `src/runlens/store.py`: filesystem protocol paths and read/write/state helpers.
 - `src/runlens/renderer.py`: Jinja2 static HTML rendering helpers.
-- `src/runlens/cli.py`: Typer commands: `init`, `update`, `render`, `checkpoint`, `finalize`.
+- `src/runlens/cli.py`: Typer commands: `init`, `update`, `render`, `watch`, `checkpoint`, `finalize`.
 - `src/runlens/templates/report.html.j2`: static report template.
 - `tests/`: pytest coverage for protocol, CLI, renderer, checkpoint, finalize gate, and error UX.
 - `docs/superpowers/`: approved design and implementation plan history.
@@ -45,6 +45,7 @@ runlens criteria add --id <id> --description "<what>" [--required]
 runlens criteria pass --id <id> --evidence "<proof>"
 runlens update --state working --note "<milestone>"
 runlens render
+runlens watch   # optional: debounce-render on spec/state changes (separate terminal)
 runlens finalize
 ```
 

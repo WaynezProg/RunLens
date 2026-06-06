@@ -16,6 +16,7 @@ from runlens.criteria import (
     reset_criterion,
     set_criterion_status,
 )
+from runlens.autorender import watch_artifacts
 from runlens.autoreport import emit_report_on_stop
 from runlens.hook import normalize_and_append
 from runlens.models import ArtifactSpec, RunStatus
@@ -205,6 +206,35 @@ def update_command(
 def render_command() -> None:
     output_path = _run_initialized_command(lambda: render_working_report(Path.cwd()))
     typer.echo(output_path)
+
+
+@app.command("watch")
+def watch_command(
+    debounce: float = typer.Option(
+        2.0,
+        "--debounce",
+        help="Seconds of quiet time after the last artifact change before rendering.",
+    ),
+    poll_interval: float = typer.Option(
+        0.25,
+        "--poll-interval",
+        help="Seconds between mtime polls.",
+    ),
+) -> None:
+    """Poll artifact spec/state and debounce-render the working HTML report."""
+
+    def run_watch() -> None:
+        try:
+            watch_artifacts(
+                Path.cwd(),
+                debounce_seconds=debounce,
+                poll_interval_seconds=poll_interval,
+            )
+        except KeyboardInterrupt:
+            raise typer.Exit(0) from None
+
+    _run_initialized_command(run_watch)
+    typer.echo("Stopped watching.")
 
 
 @app.command("finalize")

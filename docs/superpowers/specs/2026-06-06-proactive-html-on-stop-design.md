@@ -1,7 +1,9 @@
 # Proactive HTML Delivery on Agent Stop — Design
 
 - **Date:** 2026-06-06
-- **Status:** Approved design (pending spec review)
+- **Status:** Implemented; **delivery contract superseded** by
+  `2026-06-06-html-delivery-trigger-strategy-design.md` (Stop is Tier 2 bonus,
+  explicit `render` is Tier 1 canonical). Code in `autoreport.py` unchanged.
 - **Scope:** RunLens hook adapter + `runlens-artifact-protocol` skill
 
 ## Problem

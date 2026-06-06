@@ -4,6 +4,10 @@
 
 **Goal:** On agent `Stop`, automatically refresh the working HTML report and — only when the acceptance gate already passes — write the final deliverable, for every agent that fires a Stop hook.
 
+**Post-implementation note (2026-06-06):** Delivery contract superseded by
+`docs/superpowers/specs/2026-06-06-html-delivery-trigger-strategy-design.md`.
+Stop remains implemented as Tier 2 bonus; explicit `render` is Tier 1 canonical.
+
 **Architecture:** All four agents' hooks call the same `runlens hook` command. Add the Stop→HTML logic in one shared place: a new `runlens.autoreport.emit_report_on_stop(project_dir)` function invoked from the `hook` command's Stop branch. It reuses the existing `store`/`renderer` primitives and the `ArtifactSpec.required_criteria_passed()` gate — no duplicated gate logic — and never raises (best-effort telemetry).
 
 **Tech Stack:** Python 3.13, Typer, Pydantic, Jinja2, pytest, `uv`.

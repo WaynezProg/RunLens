@@ -28,6 +28,7 @@ runlens criteria add --id <id> --description "<what>" [--required]
 runlens criteria pass --id <id> --evidence "<proof>"   # criteria fail/reset/list also exist
 runlens update --state working --note "<milestone>"
 runlens render
+runlens watch   # optional: debounce-render on spec/state changes (separate terminal)
 runlens finalize
 ```
 
@@ -59,6 +60,7 @@ Layers (each module has one job; the CLI is the only place they compose):
   into a `RenderedChart`: inline SVG via vl-convert when the spec converts, else a
   data-table/link fallback. Validation is delegated to vl-convert (convert succeeds = valid);
   it never raises into render/finalize, and the finalize gate ignores charts entirely.
+- `autorender.py` — debounced working-report refresh when artifact spec/state change (`watch`).
 - `cli.py` — Typer wiring. `_run_initialized_command` / `_run_criteria_command` centralize
   error UX: missing `.agent-artifacts` → "run init"; bad JSON/YAML/schema → one-line message;
   all exit non-zero without tracebacks.
