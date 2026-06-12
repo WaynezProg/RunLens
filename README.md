@@ -28,6 +28,28 @@ uv run runlens --help   # run the CLI from the repo
 uv tool install .
 ```
 
+Install the agent trigger skill and lifecycle hooks:
+
+```bash
+bash scripts/install-agent-hooks.sh
+```
+
+This installs `runlens-artifact-protocol` into the local skill roots for Claude
+Code, Codex, OpenCode, and Cursor, then wires each platform's hook surface where
+available:
+
+- `~/.claude/skills/runlens-artifact-protocol/SKILL.md`
+- `~/.codex/skills/runlens-artifact-protocol/SKILL.md`
+- `~/.config/opencode/skills/runlens-artifact-protocol/SKILL.md`
+- `~/.cursor/skills/runlens-artifact-protocol/SKILL.md`
+
+Codex still needs one manual trust step after hook install:
+
+```text
+/hooks review
+/hooks trust
+```
+
 ## Quickstart
 
 The canonical end-to-end workflow is one script:
@@ -109,13 +131,28 @@ the only committed example trees live under `examples/`.
 The protocol is the CLI; agent instruction files are thin adapters that steer different
 agents to the same workflow:
 
+- [`docs/agent-trigger-map.md`](docs/agent-trigger-map.md) — When RunLens should trigger
+  and the platform-specific skill/hook entrypoints.
 - [`AGENTS.md`](AGENTS.md) — Codex, Cursor, opencode, Qwen Code, and similar agents.
 - [`CLAUDE.md`](CLAUDE.md) — Claude Code adapter (commands + architecture).
+- [`examples/adapters/runlens-artifact-protocol/SKILL.md`](examples/adapters/runlens-artifact-protocol/SKILL.md)
+  — canonical installable skill.
 - [`examples/adapters/opencode/runlens-artifact-protocol/SKILL.md`](examples/adapters/opencode/runlens-artifact-protocol/SKILL.md)
   — opencode skill adapter.
 
-A test (`tests/test_smoke_adapter.py`) keeps these three documenting the same canonical
-commands.
+A test (`tests/test_smoke_adapter.py`) keeps the agent-facing adapters documenting
+the same canonical commands.
+
+### When RunLens should trigger
+
+Use RunLens for long-running implementation, review/debug, deployment, release work,
+or any task that should leave an inspectable HTML artifact, timeline, final report,
+or evidence ledger. Also use it when the repo already has `.agent-artifacts/`, or
+when the user mentions RunLens, `final.html`, acceptance criteria, artifacts, or
+asks the agent to keep working until done.
+
+Do not trigger it for a quick answer, simple translation, one read-only shell command,
+or a small lookup unless the user explicitly asks for an artifact.
 
 ## Development
 

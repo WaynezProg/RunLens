@@ -199,10 +199,18 @@ bash scripts/install-agent-hooks.sh
 The installer:
 1. Creates `~/.local/share/runlens/` data directory
 2. Installs `scripts/runlens-hook` → `~/.local/bin/runlens-hook`
-3. Configures Claude Code hooks (merges into `~/.claude/settings.json`)
-4. Creates Codex hooks at `~/.codex/hooks.json` (requires manual `/hooks trust`)
-5. Creates OpenCode plugin at `~/.config/opencode/plugins/` (registered in opencode.json)
-6. Configures Cursor hooks (if Cursor ≥ 1.7 is detected)
+3. Installs the trigger skill to:
+   - `~/.claude/skills/runlens-artifact-protocol/SKILL.md`
+   - `~/.codex/skills/runlens-artifact-protocol/SKILL.md`
+   - `~/.config/opencode/skills/runlens-artifact-protocol/SKILL.md`
+   - `~/.cursor/skills/runlens-artifact-protocol/SKILL.md`
+4. Configures Claude Code hooks (merges into `~/.claude/settings.json`)
+5. Creates Codex hooks at `~/.codex/hooks.json` (requires manual `/hooks trust`)
+6. Creates OpenCode plugin at `~/.config/opencode/plugins/` (registered in opencode.json)
+7. Configures Cursor hooks (if Cursor ≥ 1.7 is detected)
+
+The trigger rules and platform mapping are documented in
+[`docs/agent-trigger-map.md`](agent-trigger-map.md).
 
 **Safety guarantees**:
 - Never overwrites a non-RunLens file at `~/.local/bin/runlens-hook`
@@ -242,6 +250,7 @@ This removes:
 - Codex hooks file (`~/.codex/hooks.json`)
 - OpenCode plugin file (`runlens-hooks.ts`) and registration in `opencode.json`
 - Cursor hook entries
+- RunLens trigger skill directories under Claude, Codex, OpenCode, and Cursor
 
 **Preserved**:
 - `~/.local/share/runlens/hooks.jsonl` (event log)

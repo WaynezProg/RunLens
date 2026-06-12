@@ -30,6 +30,8 @@ HOOK_DATA="$HOME/.local/share/runlens"
 HOOK_BIN_SRC="$SCRIPT_DIR/runlens-hook"
 
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SKILL_NAME="runlens-artifact-protocol"
+SKILL_SRC="$REPO_ROOT/examples/adapters/$SKILL_NAME/SKILL.md"
 
 # ── Step 0: Validate prerequisites ─────────────────────────────────────────
 command -v python3 &>/dev/null || abort "python3 not found. Install via Homebrew or mise."
@@ -37,6 +39,10 @@ command -v jq &>/dev/null || abort "jq not found. Install via: brew install jq"
 
 if [ ! -f "$HOOK_BIN_SRC" ]; then
     abort "runlens-hook wrapper not found at $HOOK_BIN_SRC"
+fi
+
+if [ ! -f "$SKILL_SRC" ]; then
+    abort "RunLens trigger skill not found at $SKILL_SRC"
 fi
 
 # ── Step 1: Create data directory ──────────────────────────────────────────
@@ -96,6 +102,23 @@ copy_if_changed() {
     info "$label updated: $target"
 }
 
+install_trigger_skills() {
+    info "Installing RunLens trigger skill..."
+
+    local targets=(
+        "$HOME/.claude/skills/$SKILL_NAME/SKILL.md"
+        "$HOME/.codex/skills/$SKILL_NAME/SKILL.md"
+        "$HOME/.config/opencode/skills/$SKILL_NAME/SKILL.md"
+        "$HOME/.cursor/skills/$SKILL_NAME/SKILL.md"
+    )
+
+    local target
+    for target in "${targets[@]}"; do
+        mkdir -p "$(dirname "$target")"
+        copy_if_changed "$SKILL_SRC" "$target" "RunLens trigger skill"
+    done
+}
+
 safe_merge_json() {
     # Merges new JSON into existing, key by key. If a top-level key exists in
     # both with incompatible types (e.g. object vs string), abort.
@@ -134,6 +157,8 @@ safe_merge_json() {
     echo "$merged" > "$target"
     return 0
 }
+
+install_trigger_skills
 
 # ── Step 4: Claude Code ───────────────────────────────────────────────────
 configure_claude_code() {
@@ -473,6 +498,7 @@ info "════════════════════════�
 info ""
 info "  Hook binary:   $HOOK_BIN"
 info "  Event log:     $HOOK_DATA/hooks.jsonl"
+info "  Trigger skill: $SKILL_NAME installed for Claude, Codex, OpenCode, and Cursor"
 info ""
 info "  Supported runtimes: Claude Code ✓ | OpenCode ✓ | Codex ✓ (after one-time /hooks trust) | Cursor ⚠ (IDE only)"
 info ""

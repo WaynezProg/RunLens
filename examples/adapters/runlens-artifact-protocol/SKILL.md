@@ -1,6 +1,6 @@
 ---
 name: runlens-artifact-protocol
-description: Use when an opencode agent is doing long-running implementation, release, review/debug, deployment, or any task that should leave inspectable progress or an HTML artifact. Also trigger when the repo already has .agent-artifacts/, when the user mentions RunLens, artifact, final.html, HTML report, acceptance criteria, evidence ledger, timeline, or asks the agent to keep working until done. Do not trigger for a quick answer or one read-only command unless the user asks for an artifact.
+description: Use when an agent is doing long-running implementation, release, review/debug, deployment, or any task that should leave inspectable progress or an HTML artifact. Also trigger when the repo already has .agent-artifacts/, when the user mentions RunLens, artifact, final.html, HTML report, acceptance criteria, evidence ledger, timeline, or asks the agent to keep working until done. Do not trigger for a quick answer or one read-only command unless the user asks for an artifact.
 ---
 
 # RunLens Artifact Protocol
@@ -62,7 +62,7 @@ uv run runlens criteria pass --id parser --evidence "tests/test_parser.py: 12 pa
 
 `init` seeds a required placeholder criterion, `define-criteria`, in `pending`. There
 is no `criteria remove`, and `finalize` needs every required criterion `passed` with
-evidence — so pass it too (`uv run runlens criteria pass --id define-criteria
+evidence, so pass it too (`uv run runlens criteria pass --id define-criteria
 --evidence "..."`). Use `criteria fail` / `criteria reset` / `criteria list` as needed.
 
 Record meaningful progress:
@@ -71,7 +71,7 @@ Record meaningful progress:
 uv run runlens update --state working --note "Implemented parser"
 ```
 
-Refresh the working report (required at milestones — see **Render cadence**):
+Refresh the working report:
 
 ```bash
 uv run runlens render
@@ -95,34 +95,35 @@ Mark blocked only with a real reason:
 uv run runlens finalize --blocked-reason "Missing production API access"
 ```
 
-## Render cadence (when HTML is produced)
+## Render Cadence
 
-Three tiers — **you own Tier 1**; do not assume hooks will render for you.
+Three tiers. The agent owns Tier 1; do not assume hooks will render for you.
 
-### Tier 1 — Explicit CLI (canonical)
+### Tier 1 - Explicit CLI
 
 Run `uv run runlens render` after:
 
 - `criteria pass` / `criteria fail` / `criteria reset`
 - `update --note` when the note is user-visible progress
-- Before `finalize` (always)
+- Before `finalize`
 
 Run `uv run runlens finalize` only when every required criterion is `passed`
 with evidence. Final HTML is never implied by a successful `render`.
 
-### Tier 2 — Stop hook (best-effort bonus)
+### Tier 2 - Stop Hook
 
 If lifecycle hooks are installed, a `Stop` event may refresh
-`working/report.html` and — when the gate already passes — write
-`deliverables/final.html`. **Do not rely on this:**
+`working/report.html` and, when the gate already passes, write
+`deliverables/final.html`.
 
-- OpenCode `Stop` fires per assistant turn, not session end.
-- Cursor `cursor-agent` CLI does not fire `stop`.
-- Codex needs a one-time `/hooks trust` in the TUI.
+- Claude Code: Stop is runtime verified.
+- Codex: Stop works after one-time `/hooks review` and `/hooks trust`.
+- OpenCode: Stop fires at `experimental.text.complete`, effectively per assistant turn.
+- Cursor: IDE stop hooks work; `cursor-agent` CLI stop coverage is unreliable.
 
-Hooks never populate criteria for you. Empty or stale spec → empty shell HTML.
+Hooks never populate criteria for you. Empty or stale spec means empty or stale HTML.
 
-### Tier 3 — Artifact watch (optional automation)
+### Tier 3 - Artifact Watch
 
 In a separate terminal, run:
 
@@ -131,8 +132,7 @@ uv run runlens watch
 ```
 
 This polls `artifact_spec.yaml` and `run_state.json` and debounce-renders
-`working/report.html` (~2s after the last change). It **never** writes
-`final.html`. Tier 1 explicit `render` / `finalize` still apply at closeout.
+`working/report.html`. It never writes `final.html`.
 
 ## Closeout
 

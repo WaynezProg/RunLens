@@ -32,6 +32,19 @@ runlens watch   # optional: debounce-render on spec/state changes (separate term
 runlens finalize
 ```
 
+## When To Activate RunLens
+
+Use RunLens for long-running implementation, review/debug, deployment, release
+work, or any task that should leave an inspectable HTML artifact, timeline,
+final report, or evidence ledger. Also use it when `.agent-artifacts/` already
+exists, or when the user mentions RunLens, `final.html`, acceptance criteria,
+artifacts, evidence, or asks the agent to keep working until done.
+
+Do not use RunLens for a quick answer, simple translation, one read-only shell
+command, or small lookup unless the user explicitly asks for an artifact.
+
+Platform-specific skill and hook entrypoints live in `docs/agent-trigger-map.md`.
+
 ## Architecture
 
 RunLens is a Typer CLI implementing a filesystem-first artifact protocol for coding

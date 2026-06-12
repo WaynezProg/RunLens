@@ -22,6 +22,7 @@ err()   { echo -e "${RED}[runlens] ERROR${NC} $*" >&2; }
 
 HOOK_BIN="$HOME/.local/bin/runlens-hook"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SKILL_NAME="runlens-artifact-protocol"
 
 # ── Step 1: Remove hook binary ─────────────────────────────────────────────
 if [ -f "$HOOK_BIN" ]; then
@@ -130,6 +131,25 @@ unset_cursor_hooks() {
     done
 }
 unset_cursor_hooks
+
+# ── Step 6: Trigger skill ─────────────────────────────────────────────────
+unset_trigger_skills() {
+    local targets=(
+        "$HOME/.claude/skills/$SKILL_NAME"
+        "$HOME/.codex/skills/$SKILL_NAME"
+        "$HOME/.config/opencode/skills/$SKILL_NAME"
+        "$HOME/.cursor/skills/$SKILL_NAME"
+    )
+
+    local target
+    for target in "${targets[@]}"; do
+        if [ -d "$target" ]; then
+            rm -rf "$target"
+            info "Removed trigger skill: $target"
+        fi
+    done
+}
+unset_trigger_skills
 
 # ── Done ────────────────────────────────────────────────────────────────────
 echo ""

@@ -25,9 +25,12 @@ from runlens.cli import app
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = REPO_ROOT / "examples" / "smoke-fixture" / "run.sh"
+README = REPO_ROOT / "README.md"
+TRIGGER_MAP = REPO_ROOT / "docs" / "agent-trigger-map.md"
 ADAPTERS = (
     REPO_ROOT / "AGENTS.md",
     REPO_ROOT / "CLAUDE.md",
+    REPO_ROOT / "examples" / "adapters" / "runlens-artifact-protocol" / "SKILL.md",
     REPO_ROOT / "examples" / "adapters" / "opencode" / "runlens-artifact-protocol" / "SKILL.md",
 )
 
@@ -130,3 +133,31 @@ def test_adapter_documents_canonical_commands(adapter: Path) -> None:
         if not re.search(rf"{re.escape(sig.lower())}\b", text)
     )
     assert not missing, f"{adapter.name} does not document canonical commands: {missing}"
+
+
+def test_readme_documents_agent_install_and_trigger_map() -> None:
+    text = README.read_text(encoding="utf-8")
+    for phrase in [
+        "bash scripts/install-agent-hooks.sh",
+        "docs/agent-trigger-map.md",
+        "~/.codex/skills/runlens-artifact-protocol/SKILL.md",
+        "When RunLens should trigger",
+    ]:
+        assert phrase in text
+
+
+def test_trigger_map_documents_platform_specific_entrypoints() -> None:
+    text = TRIGGER_MAP.read_text(encoding="utf-8")
+    for phrase in [
+        "Claude Code",
+        "Codex",
+        "OpenCode",
+        "Cursor",
+        "~/.claude/skills/runlens-artifact-protocol/SKILL.md",
+        "~/.codex/skills/runlens-artifact-protocol/SKILL.md",
+        "~/.config/opencode/skills/runlens-artifact-protocol/SKILL.md",
+        "~/.cursor/skills/runlens-artifact-protocol/SKILL.md",
+        "Stop hook",
+        "runlens watch",
+    ]:
+        assert phrase in text

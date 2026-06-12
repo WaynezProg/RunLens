@@ -92,3 +92,49 @@ def test_installer_claude_hooks_are_cursor_compatible(tmp_path: Path):
     # The RunLens Stop hook is still present.
     stop_cmds = [e["command"] for e in hooks["Stop"][0]["hooks"]]
     assert any("runlens-hook --event Stop --agent claude-code" in c for c in stop_cmds)
+
+
+def test_installer_installs_trigger_skill_for_supported_agents(tmp_path: Path):
+    repo = Path(__file__).resolve().parents[1]
+    home = tmp_path / "home"
+    (home / ".claude").mkdir(parents=True)
+    (home / ".claude" / "settings.json").write_text("{}\n", encoding="utf-8")
+    (home / ".codex").mkdir(parents=True)
+    (home / ".codex" / "config.toml").write_text("[hooks.state]\n", encoding="utf-8")
+    (home / ".config" / "opencode").mkdir(parents=True)
+    (home / ".config" / "opencode" / "opencode.json").write_text(
+        '{"plugin":[]}\n',
+        encoding="utf-8",
+    )
+    (home / ".cursor").mkdir(parents=True)
+
+    env = os.environ.copy()
+    env["HOME"] = str(home)
+
+    result = subprocess.run(
+        ["bash", "scripts/install-agent-hooks.sh"],
+        cwd=repo,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+    assert result.returncode == 0, result.stderr + result.stdout
+
+    targets = [
+        home / ".claude" / "skills" / "runlens-artifact-protocol" / "SKILL.md",
+        home / ".codex" / "skills" / "runlens-artifact-protocol" / "SKILL.md",
+        home
+        / ".config"
+        / "opencode"
+        / "skills"
+        / "runlens-artifact-protocol"
+        / "SKILL.md",
+        home / ".cursor" / "skills" / "runlens-artifact-protocol" / "SKILL.md",
+    ]
+    for target in targets:
+        assert target.exists(), f"missing installed skill: {target}"
+        text = target.read_text(encoding="utf-8")
+        assert "description: Use when" in text
+        assert "long-running" in text
+        assert "release" in text
+        assert ".agent-artifacts/" in text
